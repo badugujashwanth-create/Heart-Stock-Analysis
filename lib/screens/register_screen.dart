@@ -53,20 +53,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 TextFormField(
                   controller: _nameController,
-                  decoration: inputDecoration().copyWith(labelText: 'Full Name'),
+                  decoration: inputDecoration(context).copyWith(labelText: 'Full Name'),
                   validator: (v) => v != null && v.isNotEmpty ? null : 'Enter name',
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _emailController,
-                  decoration: inputDecoration().copyWith(labelText: 'Email'),
+                  decoration: inputDecoration(context).copyWith(labelText: 'Email'),
                   keyboardType: TextInputType.emailAddress,
                   validator: (v) => v != null && v.contains('@') ? null : 'Enter email',
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
-                  decoration: inputDecoration().copyWith(labelText: 'Password'),
+                  decoration: inputDecoration(context).copyWith(labelText: 'Password'),
                   obscureText: true,
                   validator: (v) => v != null && v.length >= 6 ? null : 'Min 6 characters',
                 ),
@@ -77,7 +77,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     minimumSize: const Size(double.infinity, 50),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: Text(_isLoading ? 'Creating...' : 'Create Account', style: const TextStyle(color: Colors.white, fontSize: 18)),
+                  child: Text(
+                    _isLoading ? 'Creating...' : 'Create Account',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      fontSize: 18,
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config.dart';
+import '../services/auth_service.dart';
+import '../services/prediction_parser.dart';
 
 import '../utils/ui.dart';
 import '../widgets/header.dart';
@@ -41,6 +43,9 @@ class _HomeScreenState extends State<HomeScreen> {
   int? _excessSalt = 0;
   bool _isLoading = false;
   static const _draftKey = 'form_draft_v1';
+  static const _warmupTimeout = Duration(seconds: 6);
+  static const _requestTimeout = Duration(seconds: 45);
+  static const _maxPredictAttempts = 2;
 
   @override
   void initState() {
@@ -52,9 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadProfileName() async {
-    final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getString('user_name');
-    if (saved != null && saved.isNotEmpty) {
+    final saved = await AuthService.instance.getUserName();
+    if (saved.isNotEmpty) {
       _nameController.text = saved;
       if (mounted) setState(() {});
     }
@@ -217,25 +221,11 @@ class _HomeScreenState extends State<HomeScreen> {
     };
 
     try {
-      // Wake up server quickly (non-fatal) for cold starts.
-      try { await http.get(Uri.parse(apiBaseUrl)).timeout(const Duration(seconds: 2)); } catch (_) {}
-      final response = await http
-          .post(
-            Uri.parse('$apiBaseUrl/predict'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode(requestData),
-          )
-          .timeout(const Duration(seconds: 25));
+      await _warmUpServer();
+      final response = await _postPredictionWithRetry(requestData);
       if (response.statusCode == 200 && mounted) {
         final decoded = jsonDecode(response.body);
-        Map<String, dynamic> result;
-        if (decoded is List && decoded.isNotEmpty) {
-          result = Map<String, dynamic>.from(decoded[0] as Map);
-        } else if (decoded is Map) {
-          result = Map<String, dynamic>.from(decoded);
-        } else {
-          throw const FormatException('Unexpected response format');
-        }
+        final result = PredictionParser.normalize(decoded);
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -252,17 +242,51 @@ class _HomeScreenState extends State<HomeScreen> {
         } catch (_) {}
         _showError('Server error ${response.statusCode}$details');
       }
+    } on PredictionFormatException catch (e) {
+      _showError('Unexpected server response: ${e.message}');
     } on http.ClientException catch (e) {
       _showError('Network error: ${e.message}');
-    } on FormatException {
-      _showError('Invalid response from server.');
     } on TimeoutException {
-      _showError('Request timed out. Please try again.');
+      _showError('Request timed out. The prediction server may be waking up. Please try again in 30-60 seconds.');
     } catch (_) {
       _showError('Failed to connect. Please check your internet connection.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _warmUpServer() async {
+    try {
+      await http.get(Uri.parse(apiBaseUrl)).timeout(_warmupTimeout);
+    } catch (_) {
+      // Non-fatal warm-up call; prediction request can still succeed.
+    }
+  }
+
+  Future<http.Response> _postPredictionWithRetry(Map<String, dynamic> requestData) async {
+    final uri = Uri.parse('$apiBaseUrl/predict');
+    Object? lastError;
+    for (var attempt = 1; attempt <= _maxPredictAttempts; attempt++) {
+      try {
+        return await http
+            .post(
+              uri,
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode(requestData),
+            )
+            .timeout(_requestTimeout);
+      } on TimeoutException catch (e) {
+        lastError = e;
+      } on http.ClientException catch (e) {
+        lastError = e;
+      }
+      if (attempt < _maxPredictAttempts) {
+        await Future.delayed(const Duration(seconds: 2));
+      }
+    }
+    if (lastError is TimeoutException) throw lastError;
+    if (lastError is http.ClientException) throw lastError;
+    throw TimeoutException('Prediction request timed out.');
   }
 
   void _showError(String message) {
@@ -323,7 +347,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text('Heart Stroke Prediction', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+                      child: Text(
+                        'Heart Stroke Prediction',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                     Row(
                       children: [
@@ -347,7 +378,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            if (_isLoading) Container(color: Colors.black54, child: const Center(child: CircularProgressIndicator())),
+            if (_isLoading)
+              Container(
+                color: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.55),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
           ],
         ),
       ),
@@ -360,7 +395,7 @@ class _HomeScreenState extends State<HomeScreen> {
       keyboardType: keyboardType,
       readOnly: readOnly,
       inputFormatters: inputFormatters,
-      decoration: inputDecoration().copyWith(labelText: label),
+      decoration: inputDecoration(context).copyWith(labelText: label),
       validator: (v) => v!.isEmpty ? 'Please enter $label' : null,
     );
   }
@@ -370,15 +405,22 @@ class _HomeScreenState extends State<HomeScreen> {
       value: value,
       items: options.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
       onChanged: onChanged,
-      decoration: inputDecoration().copyWith(labelText: label),
+      decoration: inputDecoration(context).copyWith(labelText: label),
     );
   }
 
   Widget _buildYesNoField({required String label, required int? groupValue, required ValueChanged<int?> onChanged}) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.w500)),
+        Text(
+          label,
+          style: TextStyle(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         const SizedBox(height: 8),
         Row(children: [
           _buildYesNoOption(label: 'Yes', value: 1, groupValue: groupValue, onChanged: onChanged),
@@ -391,20 +433,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildYesNoOption({required String label, required int value, required int? groupValue, required ValueChanged<int?> onChanged}) {
     final bool isSelected = value == groupValue;
+    final theme = Theme.of(context);
     return Expanded(
       child: GestureDetector(
         onTap: () => onChanged(value),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? Theme.of(context).colorScheme.primary : Colors.white,
+            color: isSelected ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
+          ),
           child: Center(
             child: Text(
               label,
-              style: TextStyle(color: isSelected ? Colors.white : Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: isSelected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ),

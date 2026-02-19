@@ -21,7 +21,7 @@ class HeartStrokeApp extends StatelessWidget {
       title: 'Heart Stroke Prediction',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.light,
       home: const _RootDecider(),
       debugShowCheckedModeBanner: false,
     );

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Refreshed palette: deep violet primary with a warm coral accent.
-  static const Color primary = Color(0xFF7C3AED);
-  static const Color primaryDark = Color(0xFF5B21B6);
-  static const Color accent = Color(0xFFF43F5E);
+  // Refreshed palette with stronger contrast in both light and dark modes.
+  static const Color primary = Color(0xFF0E7490);
+  static const Color primaryDark = Color(0xFF155E75);
+  static const Color accent = Color(0xFFEA580C);
   static const Color surface = Colors.white;
-  static const Color scaffold = Color(0xFFF8FAFC);
+  static const Color scaffold = Color(0xFFF4F8FB);
 
   static ThemeData get light {
     final base = ThemeData(
@@ -28,10 +28,10 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: const Color(0xFF0F172A),
+        foregroundColor: colorScheme.onSurface,
         centerTitle: false,
         titleTextStyle: base.textTheme.titleLarge?.copyWith(
-          color: const Color(0xFF0F172A),
+          color: colorScheme.onSurface,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -39,16 +39,16 @@ class AppTheme {
         headlineSmall: base.textTheme.headlineSmall?.copyWith(
           fontSize: 20,
           fontWeight: FontWeight.w700,
-          color: const Color(0xFF0F172A),
+          color: colorScheme.onSurface,
         ),
         titleMedium: base.textTheme.titleMedium?.copyWith(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF111827),
+          color: colorScheme.onSurface,
         ),
         bodyMedium: base.textTheme.bodyMedium?.copyWith(
           fontSize: 14,
-          color: const Color(0xFF1F2937),
+          color: colorScheme.onSurface,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -71,7 +71,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
-          foregroundColor: Colors.white,
+          foregroundColor: colorScheme.onPrimary,
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -95,7 +95,7 @@ class AppTheme {
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         type: BottomNavigationBarType.fixed,
         selectedItemColor: colorScheme.primary,
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: colorScheme.onSurfaceVariant,
         showUnselectedLabels: true,
         elevation: 8,
         backgroundColor: surface,
@@ -108,41 +108,73 @@ class AppTheme {
   }
 
   static ThemeData get dark {
-    final base = ThemeData.dark(useMaterial3: true);
-    final cs = ColorScheme.fromSeed(seedColor: primary, brightness: Brightness.dark);
+    final cs = ColorScheme.fromSeed(
+      seedColor: primary,
+      secondary: accent,
+      brightness: Brightness.dark,
+    );
+    final base = ThemeData(
+      brightness: Brightness.dark,
+      useMaterial3: true,
+      colorScheme: cs,
+    );
+
     return base.copyWith(
       colorScheme: cs,
-      scaffoldBackgroundColor: const Color(0xFF0B1B20),
-      appBarTheme: const AppBarTheme(
+      scaffoldBackgroundColor: const Color(0xFF111B24),
+      appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        foregroundColor: cs.onSurface,
       ),
       cardTheme: CardThemeData(
-        color: const Color(0xFF10272F),
+        color: const Color(0xFF182733),
         elevation: 1,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: const Color(0xFF10272F),
+        backgroundColor: const Color(0xFF182733),
         selectedItemColor: cs.primary,
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: cs.onSurfaceVariant,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFF0F242B),
+        fillColor: const Color(0xFF1C2E3B),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          borderSide: BorderSide(color: cs.outlineVariant),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          borderSide: BorderSide(color: cs.outlineVariant),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: cs.primary, width: 2),
         ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: cs.primary,
+          foregroundColor: cs.onPrimary,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          textStyle: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: cs.primary,
+          side: BorderSide(color: cs.outlineVariant),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+      ),
+      textTheme: base.textTheme.apply(
+        bodyColor: cs.onSurface,
+        displayColor: cs.onSurface,
       ),
     );
   }

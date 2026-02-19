@@ -24,7 +24,10 @@ class Header extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Hello,', style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600])),
+              Text(
+                'Hello,',
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
               Text(
                 name,
                 style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),

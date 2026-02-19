@@ -60,14 +60,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 48),
                 TextFormField(
                   controller: _emailController,
-                  decoration: inputDecoration().copyWith(labelText: 'Email'),
+                  decoration: inputDecoration(context).copyWith(labelText: 'Email'),
                   keyboardType: TextInputType.emailAddress,
                   validator: (v) => v != null && v.contains('@') ? null : 'Enter a valid email',
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
                   controller: _passwordController,
-                  decoration: inputDecoration().copyWith(labelText: 'Password'),
+                  decoration: inputDecoration(context).copyWith(labelText: 'Password'),
                   obscureText: true,
                   validator: (v) => v != null && v.length >= 6 ? null : 'Min 6 characters',
                 ),
@@ -78,12 +78,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     minimumSize: const Size(double.infinity, 50),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: Text(_isLoading ? 'Signing in...' : 'Login', style: const TextStyle(color: Colors.white, fontSize: 18)),
+                  child: Text(
+                    _isLoading ? 'Signing in...' : 'Login',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      fontSize: 18,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 RichText(
                   text: TextSpan(
-                    style: const TextStyle(color: Colors.black54, fontSize: 14),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
                     children: [
                       const TextSpan(text: "Don't have an account? "),
                       TextSpan(

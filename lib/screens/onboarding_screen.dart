@@ -88,12 +88,12 @@ class OnboardingScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 28),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'We help you predict your heart stroke risk with our advanced AI.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.black54,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               const Spacer(),
@@ -113,7 +113,13 @@ class OnboardingScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('Get Started', style: TextStyle(color: Colors.white, fontSize: 18)),
+                child: Text(
+                  'Get Started',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    fontSize: 18,
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
             ],

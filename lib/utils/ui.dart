@@ -1,22 +1,14 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 
-InputDecoration inputDecoration() {
+InputDecoration inputDecoration(BuildContext context) {
+  final theme = Theme.of(context);
+  final defaults = theme.inputDecorationTheme;
   return InputDecoration(
-    filled: true,
-    fillColor: Colors.white,
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: AppTheme.primary, width: 2),
-    ),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    filled: defaults.filled,
+    fillColor: defaults.fillColor,
+    border: defaults.border,
+    enabledBorder: defaults.enabledBorder,
+    focusedBorder: defaults.focusedBorder,
+    contentPadding: defaults.contentPadding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
   );
 }

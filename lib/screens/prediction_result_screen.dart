@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
+import '../services/prediction_parser.dart';
 
 class PredictionResultScreen extends StatefulWidget {
   final Map<String, dynamic> result;
@@ -14,6 +15,17 @@ class PredictionResultScreen extends StatefulWidget {
 }
 
 class _PredictionResultScreenState extends State<PredictionResultScreen> {
+  double _predictionFraction() {
+    try {
+      final normalized = PredictionParser.normalize(widget.result);
+      final value = normalized['stroke_prediction'];
+      if (value is num) return value.toDouble();
+    } catch (_) {
+      // Fall back to zero if payload is unusable.
+    }
+    return 0.0;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -23,20 +35,7 @@ class _PredictionResultScreenState extends State<PredictionResultScreen> {
   Future<void> _persist() async {
     final prefs = await SharedPreferences.getInstance();
     final now = DateTime.now().toIso8601String();
-    // Normalize to a fraction [0,1] for assistant screen compatibility
-    double? frac;
-    final sp = widget.result['stroke_prediction'];
-    final spp = widget.result['stroke_probability'];
-    if (sp is num) {
-      frac = sp.toDouble();
-      if (frac > 1) frac = frac / 100.0; // in case backend sends percent here
-    } else if (spp is num) {
-      frac = spp.toDouble() / 100.0;
-    } else if (spp is String) {
-      final v = double.tryParse(spp);
-      if (v != null) frac = v / 100.0;
-    }
-    await prefs.setString('last_prediction', (frac ?? 0).toString());
+    await prefs.setString('last_prediction', _predictionFraction().toString());
     await prefs.setString('last_prediction_time', now);
   }
 
@@ -175,24 +174,20 @@ class _PredictionResultScreenState extends State<PredictionResultScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Normalize to fraction [0,1]
-    double prediction = 0.0;
-    final sp = widget.result['stroke_prediction'];
-    final spp = widget.result['stroke_probability'];
-    if (sp is num) {
-      prediction = sp.toDouble();
-      if (prediction > 1) prediction = prediction / 100.0;
-    } else if (spp is num) {
-      prediction = spp.toDouble() / 100.0;
-    } else if (spp is String) {
-      final v = double.tryParse(spp);
-      if (v != null) prediction = v / 100.0;
-    }
+    final theme = Theme.of(context);
+    final prediction = _predictionFraction();
     final percentage = (prediction * 100).toStringAsFixed(0);
     final apiStage = widget.result['risk_label'] as String?; // e.g., "🔵 Low Risk"
     final stage = apiStage == null || apiStage.isEmpty ? _stage(prediction) : apiStage;
     final isHighRisk = prediction > 0.5;
     final name = (widget.input['name'] as String? ?? '').trim();
+    final isModerateRisk = !isHighRisk && prediction >= 0.25;
+    final badgeBackground = isHighRisk
+        ? theme.colorScheme.errorContainer
+        : (isModerateRisk ? theme.colorScheme.tertiaryContainer : theme.colorScheme.secondaryContainer);
+    final badgeForeground = isHighRisk
+        ? theme.colorScheme.onErrorContainer
+        : (isModerateRisk ? theme.colorScheme.onTertiaryContainer : theme.colorScheme.onSecondaryContainer);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Prediction Result')),
@@ -205,11 +200,11 @@ class _PredictionResultScreenState extends State<PredictionResultScreen> {
               borderRadius: BorderRadius.circular(16),
               gradient: LinearGradient(
                 colors: [
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
-                  Colors.white,
+                  theme.colorScheme.primary.withValues(alpha: 0.08),
+                  theme.colorScheme.surface,
                 ],
               ),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: theme.colorScheme.outlineVariant),
             ),
             child: Row(
               children: [
@@ -219,26 +214,27 @@ class _PredictionResultScreenState extends State<PredictionResultScreen> {
                     children: [
                       Text(name.isEmpty ? 'Result' : 'Result for $name', style: Theme.of(context).textTheme.headlineSmall),
                       const SizedBox(height: 8),
-                      const Text('Risk Percentage', style: TextStyle(color: Colors.black54)),
+                      Text(
+                        'Risk Percentage',
+                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                      ),
                       const SizedBox(height: 4),
                       const SizedBox(height: 2),
-                      Text('$percentage%', style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
+                      Text('$percentage%', style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
                     ],
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: isHighRisk
-                        ? Colors.red.shade50
-                        : (prediction >= 0.25 ? Colors.orange.shade50 : Theme.of(context).colorScheme.secondaryContainer),
+                    color: badgeBackground,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: isHighRisk ? Colors.red.shade200 : (prediction >= 0.25 ? Colors.orange.shade200 : Colors.grey.shade300)),
+                    border: Border.all(color: theme.colorScheme.outlineVariant),
                   ),
                   child: Text(
                     stage,
                     style: TextStyle(
-                       color: isHighRisk ? Colors.red.shade800 : (prediction >= 0.25 ? Colors.orange.shade800 : Theme.of(context).colorScheme.primary),
+                      color: badgeForeground,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -281,7 +277,7 @@ class _PredictionResultScreenState extends State<PredictionResultScreen> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.check_circle, size: 18, color: Theme.of(context).colorScheme.primary),
+                            Icon(Icons.check_circle, size: 18, color: theme.colorScheme.primary),
                             const SizedBox(width: 8),
                             Expanded(child: Text(t)),
                           ],
@@ -316,12 +312,13 @@ class _PredictionResultScreenState extends State<PredictionResultScreen> {
   }
 
   Widget _kv(String k, String v) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(k, style: const TextStyle(color: Colors.black54)),
+          Text(k, style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
           Text(v, style: const TextStyle(fontWeight: FontWeight.w600)),
         ],
       ),

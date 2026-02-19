@@ -65,7 +65,7 @@ class _MainAppScreenState extends State<MainAppScreen> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         selectedItemColor: Theme.of(context).colorScheme.primary,
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: Theme.of(context).colorScheme.onSurfaceVariant,
         showUnselectedLabels: true,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),

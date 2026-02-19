@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/auth_service.dart';
 import '../../utils/ui.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -21,16 +21,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    _nameController.text = prefs.getString('user_name') ?? '';
-    _emailController.text = prefs.getString('user_email') ?? '';
+    _nameController.text = await AuthService.instance.getUserName();
+    _emailController.text = await AuthService.instance.getUserEmail();
     setState(() => _loading = false);
   }
 
   Future<void> _save() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user_name', _nameController.text.trim());
-    await prefs.setString('user_email', _emailController.text.trim());
+    await AuthService.instance.updateProfile(
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+    );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile saved')));
     Navigator.pop(context);
@@ -46,14 +46,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  TextField(controller: _nameController, decoration: inputDecoration().copyWith(labelText: 'Full Name')),
+                  TextField(controller: _nameController, decoration: inputDecoration(context).copyWith(labelText: 'Full Name')),
                   const SizedBox(height: 12),
-                  TextField(controller: _emailController, decoration: inputDecoration().copyWith(labelText: 'Email')),
+                  TextField(controller: _emailController, decoration: inputDecoration(context).copyWith(labelText: 'Email')),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _save,
                   style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
-                  child: const Text('Save', style: TextStyle(color: Colors.white)),
+                  child: Text(
+                    'Save',
+                    style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+                  ),
                 )
               ],
             ),
