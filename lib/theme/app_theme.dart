@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const Color primary = Color(0xFF00ACC1);
-  static const Color primaryDark = Color(0xFF00838F);
-  static const Color accent = Color(0xFF26C6DA);
+  // Refreshed palette: deep violet primary with a warm coral accent.
+  static const Color primary = Color(0xFF7C3AED);
+  static const Color primaryDark = Color(0xFF5B21B6);
+  static const Color accent = Color(0xFFF43F5E);
   static const Color surface = Colors.white;
-  static const Color scaffold = Color(0xFFF0FAFF);
+  static const Color scaffold = Color(0xFFF8FAFC);
 
   static ThemeData get light {
     final base = ThemeData(
@@ -14,27 +15,40 @@ class AppTheme {
       scaffoldBackgroundColor: scaffold,
     );
 
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: primary,
+      primary: primary,
+      secondary: accent,
+      surface: surface,
+      brightness: Brightness.light,
+    );
+
     return base.copyWith(
-      appBarTheme: const AppBarTheme(
+      colorScheme: colorScheme,
+      appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: Color(0xFF004D40),
+        foregroundColor: const Color(0xFF0F172A),
         centerTitle: false,
+        titleTextStyle: base.textTheme.titleLarge?.copyWith(
+          color: const Color(0xFF0F172A),
+          fontWeight: FontWeight.w700,
+        ),
       ),
       textTheme: base.textTheme.copyWith(
-        headlineSmall: const TextStyle(
+        headlineSmall: base.textTheme.headlineSmall?.copyWith(
           fontSize: 20,
           fontWeight: FontWeight.w700,
-          color: Color(0xFF004D40),
+          color: const Color(0xFF0F172A),
         ),
-        titleMedium: const TextStyle(
+        titleMedium: base.textTheme.titleMedium?.copyWith(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF004D40),
+          color: const Color(0xFF111827),
         ),
-        bodyMedium: const TextStyle(
+        bodyMedium: base.textTheme.bodyMedium?.copyWith(
           fontSize: 14,
-          color: Colors.black87,
+          color: const Color(0xFF1F2937),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -43,11 +57,11 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFB2EBF2)),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFB2EBF2)),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -56,7 +70,7 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: accent,
+          backgroundColor: primary,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
@@ -67,7 +81,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: primaryDark,
-          side: const BorderSide(color: Color(0xFFB2EBF2)),
+          side: const BorderSide(color: Color(0xFFE2E8F0)),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(vertical: 14),
         ),
@@ -78,17 +92,17 @@ class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         margin: const EdgeInsets.all(0),
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: primary,
+        selectedItemColor: colorScheme.primary,
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
         elevation: 8,
-        backgroundColor: Colors.white,
+        backgroundColor: surface,
       ),
       chipTheme: base.chipTheme.copyWith(
-        side: const BorderSide(color: Color(0xFFB2EBF2)),
-        selectedColor: const Color(0xFFE0F7FA),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
+        selectedColor: const Color(0xFFF3E8FF),
       ),
     );
   }

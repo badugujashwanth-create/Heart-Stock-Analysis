@@ -53,13 +53,9 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Spacer(),
-                const Text(
+                Text(
                   'Login or Register',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF004D40),
-                  ),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 28),
                 ),
                 const SizedBox(height: 48),
                 TextFormField(
@@ -80,7 +76,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: _isLoading ? null : _login,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 50),
-                    backgroundColor: const Color(0xFF26C6DA),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: Text(_isLoading ? 'Signing in...' : 'Login', style: const TextStyle(color: Colors.white, fontSize: 18)),
@@ -93,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const TextSpan(text: "Don't have an account? "),
                       TextSpan(
                         text: 'Register',
-                        style: const TextStyle(color: Color(0xFF00ACC1), fontWeight: FontWeight.bold),
+                        style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
                             Navigator.push(
@@ -114,4 +109,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

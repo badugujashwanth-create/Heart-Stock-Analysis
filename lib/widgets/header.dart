@@ -7,28 +7,34 @@ class Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final initial = name.isNotEmpty ? name.substring(0, 1) : 'U';
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Row(
         children: [
           CircleAvatar(
             radius: 25,
-            backgroundColor: const Color(0xFFE0F7FA),
-            child: Text(initial, style: const TextStyle(color: Color(0xFF00ACC1), fontWeight: FontWeight.bold)),
+            backgroundColor: theme.colorScheme.secondaryContainer,
+            child: Text(
+              initial,
+              style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
+            ),
           ),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Hello,', style: TextStyle(color: Colors.grey)),
-              Text(name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF004D40))),
+              Text('Hello,', style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600])),
+              Text(
+                name,
+                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+              ),
             ],
           ),
           const Spacer(),
-          const Icon(Icons.menu, color: Color(0xFF00796B), size: 30),
+          Icon(Icons.menu, color: theme.colorScheme.primary, size: 30),
         ],
       ),
     );
   }
 }
-

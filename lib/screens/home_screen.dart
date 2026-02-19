@@ -232,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (decoded is List && decoded.isNotEmpty) {
           result = Map<String, dynamic>.from(decoded[0] as Map);
         } else if (decoded is Map) {
-          result = Map<String, dynamic>.from(decoded as Map);
+          result = Map<String, dynamic>.from(decoded);
         } else {
           throw const FormatException('Unexpected response format');
         }
@@ -245,7 +245,11 @@ class _HomeScreenState extends State<HomeScreen> {
       } else {
         // Try to surface server-provided error text if available
         String details = '';
-        try { details = ': ' + (response.body.isNotEmpty ? response.body : ''); } catch (_) {}
+        try {
+          if (response.body.isNotEmpty) {
+            details = ': ${response.body}';
+          }
+        } catch (_) {}
         _showError('Server error ${response.statusCode}$details');
       }
     } on http.ClientException catch (e) {
@@ -288,7 +292,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Header(name: _nameController.text),
                     const SizedBox(height: 24),
-                    const Text('Inputs', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF004D40))),
+                    Text(
+                      'Inputs',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 16),
                     _buildInputField(controller: _ageController, label: 'Age', keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly]),
                     _buildDropdownField(label: 'Gender', value: _gender, options: const ['Male', 'Female', 'Other'], onChanged: (val) => setState(() => _gender = val)),
@@ -312,7 +319,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: _isLoading ? null : _getPrediction,
-                      style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), backgroundColor: const Color(0xFF26C6DA), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
                       child: const Text('Heart Stroke Prediction', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
                     ),
                     Row(
@@ -387,14 +397,14 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF00ACC1) : Colors.white,
+            color: isSelected ? Theme.of(context).colorScheme.primary : Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFB2EBF2)),
-          ),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
           child: Center(
             child: Text(
               label,
-              style: TextStyle(color: isSelected ? Colors.white : const Color(0xFF00796B), fontWeight: FontWeight.w600),
+              style: TextStyle(color: isSelected ? Colors.white : Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w600),
             ),
           ),
         ),

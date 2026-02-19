@@ -13,11 +13,10 @@ class TipCard extends StatelessWidget {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
-        leading: Icon(icon, size: 40, color: const Color(0xFF00ACC1)),
+        leading: Icon(icon, size: 40, color: Theme.of(context).colorScheme.primary),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(description),
       ),
     );
   }
 }
-

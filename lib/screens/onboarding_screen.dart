@@ -48,15 +48,15 @@ class _HeartbeatAnimationState extends State<_HeartbeatAnimation>
             child: Container(
               height: 220,
               width: 220,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Color(0xFFE0F7FA),
+                color: Theme.of(context).colorScheme.secondaryContainer,
               ),
-              child: const Center(
+              child: Center(
                 child: Icon(
                   Icons.favorite,
                   size: 140,
-                  color: Color(0xFF26C6DA),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
             ),
@@ -82,18 +82,14 @@ class OnboardingScreen extends StatelessWidget {
               const Spacer(),
               const _HeartbeatAnimation(),
               const SizedBox(height: 48),
-              const Text(
+              Text(
                 'Welcome to\nHeart Stroke Prediction',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF004D40),
-                ),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 28),
               ),
               const SizedBox(height: 16),
               const Text(
-                'We help you to predict your heart stroke risk with our advanced AI.',
+                'We help you predict your heart stroke risk with our advanced AI.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -113,7 +109,6 @@ class OnboardingScreen extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: const Color(0xFF26C6DA),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

@@ -27,7 +27,7 @@ class _HealthAssistantScreenState extends State<HealthAssistantScreen> {
     final raw = prefs.getString(_historyKey);
     if (raw == null) {
       setState(() {
-        _messages.add(_Msg(bot: true, text: 'Hi! I\'m your health assistant. Ask about blood pressure, diet, exercise, smoking, alcohol, glucose, or your latest prediction.'));
+        _messages.add(const _Msg(bot: true, text: 'Hi! I\'m your health assistant. Ask about blood pressure, diet, exercise, smoking, alcohol, glucose, or your latest prediction.'));
       });
       return;
     }
@@ -41,7 +41,7 @@ class _HealthAssistantScreenState extends State<HealthAssistantScreen> {
       // start fresh if corrupted
       setState(() {
         _messages.clear();
-        _messages.add(_Msg(bot: true, text: 'Hi! I\'m your health assistant. Ask about blood pressure, diet, exercise, smoking, alcohol, glucose, or your latest prediction.'));
+        _messages.add(const _Msg(bot: true, text: 'Hi! I\'m your health assistant. Ask about blood pressure, diet, exercise, smoking, alcohol, glucose, or your latest prediction.'));
       });
     }
   }
@@ -124,7 +124,7 @@ class _HealthAssistantScreenState extends State<HealthAssistantScreen> {
     setState(() {
       _messages
         ..clear()
-        ..add(_Msg(bot: true, text: 'History cleared. How can I help today?'));
+        ..add(const _Msg(bot: true, text: 'History cleared. How can I help today?'));
     });
   }
 
@@ -176,8 +176,9 @@ class _HealthAssistantScreenState extends State<HealthAssistantScreen> {
                 }
                 final m = _messages[i];
                 final align = m.bot ? Alignment.centerLeft : Alignment.centerRight;
-                final color = m.bot ? const Color(0xFFE0F7FA) : const Color(0xFF26C6DA);
-                final txtColor = m.bot ? const Color(0xFF004D40) : Colors.white;
+                final theme = Theme.of(context);
+                final color = m.bot ? theme.colorScheme.secondaryContainer : theme.colorScheme.primary;
+                final txtColor = m.bot ? theme.colorScheme.onSecondaryContainer : Colors.white;
                 return Align(
                   alignment: align,
                   child: GestureDetector(
@@ -214,7 +215,7 @@ class _HealthAssistantScreenState extends State<HealthAssistantScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                IconButton(icon: const Icon(Icons.send, color: Color(0xFF00ACC1)), onPressed: _send),
+                IconButton(icon: Icon(Icons.send, color: Theme.of(context).colorScheme.primary), onPressed: _send),
               ],
             ),
           )
@@ -282,7 +283,7 @@ class _TypingDotsState extends State<_TypingDots> with SingleTickerProviderState
                 width: 6,
                 height: 6,
                 decoration: BoxDecoration(
-                  color: on ? const Color(0xFF26C6DA) : const Color(0xFFB2EBF2),
+                  color: on ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.secondaryContainer,
                   shape: BoxShape.circle,
                 ),
               ),

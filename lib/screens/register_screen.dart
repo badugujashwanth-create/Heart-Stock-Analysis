@@ -75,7 +75,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   onPressed: _isLoading ? null : _register,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 50),
-                    backgroundColor: const Color(0xFF26C6DA),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: Text(_isLoading ? 'Creating...' : 'Create Account', style: const TextStyle(color: Colors.white, fontSize: 18)),
@@ -88,4 +87,3 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
-

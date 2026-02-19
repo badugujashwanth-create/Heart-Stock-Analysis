@@ -26,14 +26,14 @@ class _MainAppScreenState extends State<MainAppScreen> {
   Widget _buildPage(int index) {
     switch (index) {
       case 0:
-        return HomeScreen();
+        return const HomeScreen();
       case 1:
-        return RecommendedTipsScreen();
+        return const RecommendedTipsScreen();
       case 2:
-        return HealthAssistantScreen();
+        return const HealthAssistantScreen();
       case 3:
       default:
-        return SettingsScreen();
+        return const SettingsScreen();
     }
   }
 
@@ -64,7 +64,7 @@ class _MainAppScreenState extends State<MainAppScreen> {
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: const Color(0xFF00ACC1),
+        selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
         items: const [

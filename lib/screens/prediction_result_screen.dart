@@ -86,7 +86,12 @@ class _PredictionResultScreenState extends State<PredictionResultScreen> {
           ),
           child: pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [pw.Text(k, style: pw.TextStyle(color: PdfColors.grey800)), pw.Text(v, style: pw.TextStyle(fontWeight: pw.FontWeight.bold))],
+            children: [
+              // ignore: prefer_const_constructors
+              pw.Text(k, style: pw.TextStyle(color: PdfColors.grey800)),
+              // ignore: prefer_const_constructors
+              pw.Text(v, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            ],
           ),
         );
 
@@ -198,8 +203,13 @@ class _PredictionResultScreenState extends State<PredictionResultScreen> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(colors: [Colors.cyan.shade50, Colors.white]),
-              border: Border.all(color: const Color(0xFFB2EBF2)),
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                  Colors.white,
+                ],
+              ),
+              border: Border.all(color: Colors.grey.shade200),
             ),
             child: Row(
               children: [
@@ -212,7 +222,7 @@ class _PredictionResultScreenState extends State<PredictionResultScreen> {
                       const Text('Risk Percentage', style: TextStyle(color: Colors.black54)),
                       const SizedBox(height: 4),
                       const SizedBox(height: 2),
-                      Text('$percentage%', style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Color(0xFF00796B))),
+                      Text('$percentage%', style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
                     ],
                   ),
                 ),
@@ -221,14 +231,14 @@ class _PredictionResultScreenState extends State<PredictionResultScreen> {
                   decoration: BoxDecoration(
                     color: isHighRisk
                         ? Colors.red.shade50
-                        : (prediction >= 0.25 ? Colors.orange.shade50 : Colors.green.shade50),
+                        : (prediction >= 0.25 ? Colors.orange.shade50 : Theme.of(context).colorScheme.secondaryContainer),
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: isHighRisk ? Colors.red.shade200 : (prediction >= 0.25 ? Colors.orange.shade200 : Colors.green.shade200)),
+                    border: Border.all(color: isHighRisk ? Colors.red.shade200 : (prediction >= 0.25 ? Colors.orange.shade200 : Colors.grey.shade300)),
                   ),
                   child: Text(
                     stage,
                     style: TextStyle(
-                      color: isHighRisk ? Colors.red.shade800 : (prediction >= 0.25 ? Colors.orange.shade800 : Colors.green.shade800),
+                       color: isHighRisk ? Colors.red.shade800 : (prediction >= 0.25 ? Colors.orange.shade800 : Theme.of(context).colorScheme.primary),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -271,7 +281,7 @@ class _PredictionResultScreenState extends State<PredictionResultScreen> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.check_circle, size: 18, color: Color(0xFF00ACC1)),
+                            Icon(Icons.check_circle, size: 18, color: Theme.of(context).colorScheme.primary),
                             const SizedBox(width: 8),
                             Expanded(child: Text(t)),
                           ],
@@ -310,7 +320,10 @@ class _PredictionResultScreenState extends State<PredictionResultScreen> {
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [Text(k, style: const TextStyle(color: Colors.black54)), Text(v, style: const TextStyle(fontWeight: FontWeight.w600))],
+        children: [
+          Text(k, style: const TextStyle(color: Colors.black54)),
+          Text(v, style: const TextStyle(fontWeight: FontWeight.w600)),
+        ],
       ),
     );
   }

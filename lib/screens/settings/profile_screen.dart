@@ -49,16 +49,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   TextField(controller: _nameController, decoration: inputDecoration().copyWith(labelText: 'Full Name')),
                   const SizedBox(height: 12),
                   TextField(controller: _emailController, decoration: inputDecoration().copyWith(labelText: 'Email')),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: _save,
-                    style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48), backgroundColor: const Color(0xFF26C6DA)),
-                    child: const Text('Save', style: TextStyle(color: Colors.white)),
-                  )
-                ],
-              ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _save,
+                  style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
+                  child: const Text('Save', style: TextStyle(color: Colors.white)),
+                )
+              ],
             ),
+          ),
     );
   }
 }
-
