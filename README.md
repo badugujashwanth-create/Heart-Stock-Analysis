@@ -1,126 +1,129 @@
 # HeartAnalysis
 
-HeartAnalysis is a cross platform Flutter application that helps people capture clinical and lifestyle factors, call an AI powered prediction API, and receive an interpretable heart stroke risk report. The app ships with onboarding, local only authentication, a multi tab experience, a health assistant, PDF exports, and basic settings so it can be demoed on mobile, web, or desktop.
+HeartAnalysis is a cross-platform Flutter app for stroke risk screening with a production-style Python backend API.
+The backend now includes an interpretable AI scoring model, strict request validation, explainability output, and versioned API endpoints.
 
-## Features
+## Highlights
 
-- Guided onboarding and lightweight email plus password auth (stored locally with `SharedPreferences` for demo purposes).
-- Rich prediction form with 18 inputs, client side BMI calculation, draft persistence, and validation before submitting to the `/predict` backend.
-- Result screen that normalizes API responses, surfaces personalized recommendations, caches the outcome for the assistant, and exports a printable PDF via the `pdf` and `printing` packages.
-- Health Assistant tab that emulates a rule based chat bot, keeps history on device, and links back to the last prediction so users can ask follow up questions.
-- Recommended tips, configurable notifications, profile editing, and simple privacy/help/about pages under the Settings tab.
-- Light and dark theming plus Material 3 components for consistent styling across Android, iOS, Web, Windows, macOS, and Linux builds.
+- Flutter app with onboarding, local session management, risk input form, assistant, settings, and PDF report export.
+- AI-enhanced backend (`CardioRisk AI v2`) with:
+  - validated request schema
+  - calibrated risk scoring
+  - top contributing factors
+  - personalized recommendations
+  - model/version metadata
+- Contract compatibility: frontend accepts both legacy and enriched API responses.
+- CI quality gates for both Flutter and backend.
 
-## Architecture at a Glance
+## Architecture
 
-| Layer | Responsibilities | Key Files |
-| --- | --- | --- |
-| App shell | Boots Flutter, picks theme, routes based on onboarding/auth state | `lib/main.dart`, `lib/theme/app_theme.dart` |
-| Screens | Onboarding, auth, multi tab experience, form, assistant, result, settings | `lib/screens/**/*.dart` |
-| Services | Local auth facade with `SharedPreferences` | `lib/services/auth_service.dart` |
-| Utilities & Widgets | Form styling helpers and reusable UI atoms | `lib/utils/ui.dart`, `lib/widgets/*` |
+- Frontend: Flutter (`lib/`)
+- Backend API: Flask (`app.py`)
+- API tests: `backend_tests/`
+- CI workflows:
+  - `.github/workflows/quality-checks.yml`
+  - `.github/workflows/deploy-web.yml`
 
-The runtime flow is:
+## Runtime Configuration
 
-1. `_RootDecider` in `main.dart` checks if the user finished onboarding and login; it then routes to `OnboardingScreen`, `LoginScreen`, or the `MainAppScreen` tab scaffold.
-2. `MainAppScreen` lazily builds four tabs: `HomeScreen` (prediction form), `RecommendedTipsScreen`, `HealthAssistantScreen`, and `SettingsScreen`.
-3. `HomeScreen` collects inputs, autosaves drafts, and posts JSON to `${apiBaseUrl}/predict`. Successful responses navigate to `PredictionResultScreen`.
-4. `PredictionResultScreen` persists the normalized risk to `SharedPreferences` for the assistant, shows recommendations, and can generate a PDF.
-5. `HealthAssistantScreen` reads `last_prediction` to answer "Explain my result" questions and stores chat history locally.
-
-## Directory Structure
-
-```
-lib/
-|-- config.dart                 # API base URL (`apiBaseUrl`)
-|-- main.dart                   # App entry point and root routing logic
-|-- screens/
-|   |-- onboarding_screen.dart
-|   |-- login_screen.dart
-|   |-- register_screen.dart
-|   |-- main_app_screen.dart    # Bottom navigation scaffold
-|   |-- home_screen.dart        # Prediction form + API call
-|   |-- prediction_result_screen.dart
-|   |-- assistant_screen.dart
-|   |-- tips_screen.dart
-|   `-- settings/
-|       |-- settings_screen.dart
-|       |-- profile_screen.dart
-|       |-- notifications_screen.dart
-|       |-- privacy_screen.dart
-|       |-- help_screen.dart
-|       `-- about_screen.dart
-|-- services/
-|   `-- auth_service.dart
-|-- theme/
-|   `-- app_theme.dart
-|-- utils/
-|   `-- ui.dart
-`-- widgets/
-    |-- header.dart
-    `-- tip_card.dart
-```
-
-## Configuration
-
-- API endpoint: update `lib/config.dart` to point at your backend (defaults to `https://stroke-app-as3q.onrender.com`).
-- Prediction timeout: `HomeScreen._getPrediction` currently times out after 25 seconds. Adjust if your server is slower/faster.
-- Local storage keys: `AuthService` and various screens rely on specific keys (`user_name`, `last_prediction`, `form_draft_v1`, etc.). If you change them, update both the read and write sites.
-
-## Prediction API Contract
-
-- Endpoint: `POST {apiBaseUrl}/predict`
-- Headers: `Content-Type: application/json`
-- Request body
-
-| Field | Type | Source |
-| --- | --- | --- |
-| `age` | int | `Age` text field |
-| `gender` | string (`Male`, `Female`, `Other`) | Gender dropdown |
-| `hypertension`, `heart_disease`, `alcoholic`, `family_history`, `excess_salt` | string (`Yes` or `No`) | Yes/No selectors |
-| `ever_married` | string (`Yes` or `No`) | Marital status selector |
-| `work_type` | string (`Private`, `Self-employed`, `Govt`, `Children`, `Never worked`) | Work dropdown |
-| `Residence_type` | string (`Urban` or `Rural`) | Residence dropdown |
-| `avg_glucose_level`, `bmi` | double | Calculated text inputs |
-| `systolic_bp`, `diastolic_bp`, `sleep_hours`, `exercise_mins` | int | Numeric inputs |
-| `smoking_status` | string (`Never`, `Formerly`, `Smokes`) | Dropdown mapped from UI labels |
-
-- Response expectations: The app handles either `{ stroke_prediction: <0-1>, risk_label: "High Risk" }` or a list containing that map. Probabilities over 1 are treated as percentages and normalized to a 0-1 fraction.
-
-## Local Persistence
-
-| Key | Owner | Purpose |
-| --- | --- | --- |
-| `onboarded` | `OnboardingScreen` | Skip onboarding after first run |
-| `is_logged_in`, `user_email`, `user_name` | `AuthService` | Simple auth state and profile |
-| `form_draft_v1` | `HomeScreen` | Autosaved prediction form draft |
-| `last_prediction`, `last_prediction_time` | `PredictionResultScreen` | Last risk value for assistant |
-| `chat_history_v1` | `HealthAssistantScreen` | Stored assistant conversation |
-| `notif_enabled` | `NotificationsScreen` | Local notification toggle |
-
-## Running the App
+Use Dart defines instead of hardcoding environments:
 
 ```bash
-flutter pub get          # Install dependencies
-flutter analyze          # Static analysis (optional but recommended)
-flutter test             # Widget/unit tests (none yet, command succeeds)
-flutter run              # Launch on the default connected device
+flutter run --dart-define=APP_ENV=dev --dart-define=API_BASE_URL=http://10.0.2.2:8000
+flutter build apk --release --dart-define=APP_ENV=prod --dart-define=API_BASE_URL=https://your-api.onrender.com
 ```
 
-Target a platform explicitly with `flutter run -d android`, `-d ios`, `-d chrome`, etc. When you are ready to ship, follow the platform specific steps in `DEPLOYMENT.md`.
+Config source: `lib/config.dart`.
 
-## Testing and Linting
+## Backend API
 
-- Analyzer rules are defined in `analysis_options.yaml` (Flutter lints v2). Run `flutter analyze` to catch issues before committing.
-- No bespoke widget or integration tests exist yet; add them under `test/` as you extend the app.
+### Endpoints
 
-## Deployment
+- `GET /` : service metadata
+- `GET /healthz` and `GET /v1/healthz` : health checks
+- `GET /v1/model-card` : AI model metadata
+- `POST /predict` and `POST /v1/predict` : risk prediction
+- `GET /v1/predictions?limit=20` : recently stored prediction records
 
-`DEPLOYMENT.md` documents how to build signed Android App Bundles/APKs, iOS IPAs, and desktop/web releases, plus a sample GitHub Actions workflow. Refer to that file for store ready builds.
+## Data Storage
 
-## Roadmap Ideas
+- Backend predictions are persisted in a database.
+- Default backend: SQLite (`data/predictions.db`).
+- Optional MySQL backend via env vars:
+  - `DB_BACKEND=mysql`
+  - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`
+- SQLite path can be changed with `PREDICTION_DB_PATH`.
+- On Render Free instances, local filesystem data is not durable across rebuilds/redeploys.
+- For durable storage in production, use a managed database (for example Render Postgres) or a paid plan with persistent disk.
 
-- Replace the local `AuthService` with a real backend or Firebase Auth.
-- Add offline queueing/retry when the prediction API is unavailable.
-- Expand test coverage (widget tests for the form and assistant, integration tests for navigation).
-- Internationalization and accessibility reviews.
+### Request body
+
+`POST /predict` accepts:
+
+- `age` (int)
+- `gender` (`Male|Female|Other`)
+- `hypertension`, `heart_disease`, `ever_married`, `alcoholic`, `family_history`, `excess_salt` (`Yes|No`)
+- `work_type` (`Private|Self-employed|Govt|Children|Never worked`)
+- `Residence_type` (`Urban|Rural`)
+- `avg_glucose_level` (number)
+- `bmi` (number)
+- `smoking_status` (`Never|Formerly|Smokes`)
+- `systolic_bp`, `diastolic_bp`, `sleep_hours`, `exercise_mins` (int)
+
+### Response fields
+
+Core fields:
+
+- `stroke_prediction` (0-1)
+- `stroke_probability` (0-100)
+- `risk_label`
+- `interpretation`
+
+AI enrichments:
+
+- `ai_summary`
+- `top_factors` (list)
+- `recommendations` (list)
+- `model_name`, `model_version`
+- `api_version`, `request_id`
+- `disclaimer`
+
+## Local Development
+
+### Frontend
+
+```bash
+flutter pub get
+flutter analyze
+flutter test
+flutter run
+```
+
+### Backend
+
+```bash
+python -m pip install -r requirements.txt
+python app.py
+```
+
+Backend runs by default on `http://localhost:8000`.
+
+## Testing
+
+- Flutter tests: `flutter test`
+- Backend tests: `python -m unittest discover -s backend_tests -p "test_*.py"`
+
+## Render Deployment (Backend)
+
+Use Render Web Service with:
+
+- Language: `Python 3`
+- Build: `pip install -r requirements.txt`
+- Start: `gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120`
+- Health check path: `/healthz`
+
+After deploy, update `API_BASE_URL` in Flutter build/run via `--dart-define`.
+
+## Notes
+
+This app provides educational risk estimation and is not a substitute for clinical diagnosis.

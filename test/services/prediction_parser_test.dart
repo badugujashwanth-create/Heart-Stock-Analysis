@@ -43,5 +43,32 @@ void main() {
         throwsA(isA<PredictionFormatException>()),
       );
     });
+
+    test('flattens nested prediction and explanation payload', () {
+      final payload = {
+        'prediction': {
+          'stroke_probability': '61%',
+          'risk_label': 'High Risk',
+        },
+        'explanations': {
+          'summary': 'Primary drivers are BP and glucose.',
+          'top_factors': [
+            {'feature': 'systolic_bp', 'label': 'Systolic blood pressure', 'effect': 'increase'}
+          ],
+        },
+        'model': {'name': 'CardioRisk AI', 'version': '2.0.0'},
+        'recommendations': ['Check blood pressure daily.'],
+      };
+
+      final normalized = PredictionParser.normalize(payload);
+
+      expect(normalized['stroke_prediction'], closeTo(0.61, 0.0001));
+      expect(normalized['risk_label'], 'High Risk');
+      expect(normalized['ai_summary'], 'Primary drivers are BP and glucose.');
+      expect(normalized['top_factors'], isA<List<Map<String, dynamic>>>());
+      expect(normalized['recommendations'], ['Check blood pressure daily.']);
+      expect(normalized['model_name'], 'CardioRisk AI');
+      expect(normalized['model_version'], '2.0.0');
+    });
   });
 }
