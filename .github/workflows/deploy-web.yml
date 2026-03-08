@@ -29,9 +29,11 @@ jobs:
 
       - name: Get dependencies
         run: flutter pub get
+        working-directory: frontend
 
       - name: Build web
         run: flutter build web --release --base-href "/Heart-Stock-Analysis/"
+        working-directory: frontend
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -39,7 +41,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build/web
+          path: frontend/build/web
 
   deploy:
     environment:
