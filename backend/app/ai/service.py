@@ -9,6 +9,7 @@ from typing import Any
 from app.config import Settings
 
 from .constants import SAFE_MEDICAL_DISCLAIMER
+from .llama_cpp_provider import LlamaCppProvider
 from .openai_provider import OpenAIProvider
 from .provider import AIProvider, AIProviderError
 from .rules_provider import RulesAIProvider
@@ -47,13 +48,10 @@ class AIService:
                 provider_name="OpenAI",
             )
         elif settings.ai_provider == "llama_cpp":
-            primary = OpenAIProvider(
-                api_key=None,
+            primary = LlamaCppProvider(
                 model=settings.llama_cpp_model,
                 base_url=settings.llama_cpp_base_url,
                 timeout_seconds=settings.llama_cpp_timeout_seconds,
-                provider_name="llama.cpp",
-                require_api_key=False,
             )
         else:
             primary = fallback

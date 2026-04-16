@@ -1,11 +1,14 @@
 # Render Deployment (Backend)
 
-Create a Render **Web Service** from this repository and set:
+Use the root `render.yaml` blueprint when possible. If you prefer manual setup,
+create a Render **Web Service** from this repository and set:
 
 - Root Directory: `backend`
 - Build Command: `pip install -r requirements.txt`
 - Start Command: `gunicorn app.main:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120`
 - Health Check Path: `/healthz`
+- Runtime config note: `APP_ENV=production` now fails fast if `SECRET_KEY` is left
+  at the default value or if `CORS_ORIGINS=*`.
 
 ## Required Environment Variables
 
@@ -26,6 +29,9 @@ Optional when using llama.cpp mode:
 - `LLAMA_CPP_MODEL=local-model`
 - `LLAMA_CPP_BASE_URL=http://your-llama-host:8080`
 - `LLAMA_CPP_TIMEOUT_SECONDS=60`
+- The backend uses llama.cpp's OpenAI-compatible `POST /v1/chat/completions`
+  route and will fall back from `json_schema` to plain `json_object` output if
+  the server build does not support schema-constrained responses.
 
 Safety controls:
 

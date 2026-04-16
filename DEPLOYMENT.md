@@ -1,95 +1,109 @@
 # HeartAnalysis Deployment Guide
 
-This guide covers deployment for both frontend (Flutter) and backend (Flask API).
+This repository’s deployable targets are:
 
-## 1) Prerequisites
+- `backend/`: Flask API deployed as a Python web service
+- `frontend/`: Flutter web app deployed as static files
 
-- Flutter stable SDK
-- Android Studio / Xcode as needed
-- Python 3.10+ for backend
-- Render account (for backend and optional web hosting)
+The older root-level Flutter/Python prototype is not the deployment target for
+CI or production.
 
-## 2) Frontend Build Commands
+## 1) Backend Deployment
 
-```bash
-flutter pub get
-flutter analyze
-flutter test
+### Recommended: Render blueprint
+
+The repository now includes [`render.yaml`](./render.yaml). In Render:
+
+1. Create a new Blueprint instance from this repository.
+2. Review the generated backend service.
+3. Set `CORS_ORIGINS` to your deployed frontend URL.
+4. If you use OpenAI, add `OPENAI_API_KEY` and set `AI_PROVIDER=openai`.
+
+The backend service uses:
+
+- Root directory: `backend`
+- Build command: `pip install -r requirements.txt`
+- Start command: `gunicorn app.main:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120`
+- Health check path: `/healthz`
+
+### Manual Render setup
+
+If you do not use the blueprint, the same settings are documented in
+[`backend/RENDER.md`](./backend/RENDER.md).
+
+### Required production environment variables
+
+Set these before first deploy:
+
+```env
+APP_ENV=production
+SECRET_KEY=<strong-random-secret>
+CORS_ORIGINS=https://your-frontend-host
+AI_PROVIDER=rules
+DB_BACKEND=sqlite
+SQLITE_PATH=data/app.db
+MAX_REQUEST_SIZE_KB=256
+AI_RATE_LIMIT_PER_MINUTE=30
 ```
 
-### Android
+Important runtime checks:
 
-```bash
-flutter build apk --release --dart-define=APP_ENV=prod --dart-define=API_BASE_URL=https://your-api.onrender.com
-```
-
-### Web
-
-```bash
-flutter build web --release --dart-define=APP_ENV=prod --dart-define=API_BASE_URL=https://your-api.onrender.com
-```
-
-## 3) Backend Local Run
-
-```bash
-python -m pip install -r requirements.txt
-python app.py
-```
-
-Local API: `http://localhost:8000`
-
-Health check: `http://localhost:8000/healthz`
-
-## 4) Backend Deploy on Render
-
-Create a **Web Service** using this repo.
-
-- Language: `Python 3`
-- Root Directory: *(blank)*
-- Build Command: `pip install -r requirements.txt`
-- Start Command: `gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120`
-- Health Check Path: `/healthz`
-- SQLite mode (default): `PREDICTION_DB_PATH=/var/data/predictions.db`
-- MySQL mode (optional):
-  - `DB_BACKEND=mysql`
-  - `DB_HOST=...`
-  - `DB_PORT=3306`
-  - `DB_USER=...`
-  - `DB_PASSWORD=...`
-  - `DB_NAME=heartanalysis`
-
-After deployment, copy the Render URL and use it as `API_BASE_URL` in Flutter builds.
+- `APP_ENV=production` now fails startup if `SECRET_KEY` is left at a default value.
+- `APP_ENV=production` now fails startup if `CORS_ORIGINS=*`.
+- `AI_PROVIDER=openai` now fails startup unless `OPENAI_API_KEY` is set.
 
 ### Persistence note
 
-- Render Free instances do not provide durable local disk storage.
-- If you need records to survive redeploy/restarts, use durable storage:
-  - Render Postgres, or
-  - a paid instance with persistent disk.
+SQLite is fine for demos and smoke deployments. It is not durable on ephemeral
+instances. For persistent history in production, use managed MySQL or attach
+persistent disk.
 
-## 5) Backend API Endpoints
+## 2) Frontend Deployment
 
-- `GET /`
-- `GET /healthz`
-- `GET /v1/healthz`
-- `GET /v1/model-card`
-- `POST /predict`
-- `POST /v1/predict`
+### GitHub Pages workflow
 
-## 6) CI/CD
+The repository includes `.github/workflows/deploy-web.yml` to publish
+`frontend/build/web` to GitHub Pages.
 
-Workflows included:
+Before running it, set the repository variable:
 
-- `.github/workflows/quality-checks.yml`:
-  - backend tests (`python -m unittest`)
-  - `flutter analyze`
-  - `flutter test`
-- `.github/workflows/deploy-web.yml`:
-  - deploys Flutter web to GitHub Pages
+```text
+FRONTEND_API_BASE_URL=https://your-backend-host
+```
 
-## 7) Quick Verify Checklist
+The workflow now fails fast if this variable is missing, which prevents a broken
+web deploy that points at `http://localhost:8000`.
 
-1. `GET /healthz` returns `200`
-2. `POST /predict` returns `stroke_prediction`, `risk_label`, `top_factors`
-3. Flutter app can submit form and render recommendations/AI insights
-4. CI checks pass on `main`
+### Manual web build
+
+```bash
+cd frontend
+flutter pub get
+flutter analyze
+flutter test
+flutter build web --release --dart-define=API_BASE_URL=https://your-backend-host
+```
+
+### Android release build
+
+```bash
+cd frontend
+flutter build apk --release --dart-define=API_BASE_URL=https://your-backend-host
+```
+
+## 3) CI Coverage
+
+`.github/workflows/quality-checks.yml` now verifies:
+
+- backend linting with `ruff`
+- backend tests with `pytest`
+- frontend static analysis
+- frontend widget/unit tests
+- frontend release web build with an explicit `API_BASE_URL`
+
+## 4) Post-Deploy Smoke Checklist
+
+1. Open `GET /healthz` on the backend and confirm it returns `200`.
+2. Send `POST /v1/predict` with a valid payload and confirm `risk_probability`, `risk_label`, and `ai_plan_preview` are returned.
+3. Open the deployed web app and submit the form successfully.
+4. Check browser network requests and confirm the frontend is calling your deployed backend host, not `localhost`.

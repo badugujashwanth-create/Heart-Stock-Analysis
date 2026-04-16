@@ -54,3 +54,6 @@ jobs:
 
       - name: Test
         run: flutter test
+
+      - name: Build web release bundle
+        run: flutter build web --release --dart-define=API_BASE_URL=https://api.example.com

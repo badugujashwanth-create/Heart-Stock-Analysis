@@ -51,6 +51,50 @@ class Settings:
         sqlite_path.parent.mkdir(parents=True, exist_ok=True)
         return f"sqlite:///{sqlite_path.as_posix()}"
 
+    @property
+    def is_production(self) -> bool:
+        return self.app_env.strip().lower() == "production"
+
+    def startup_errors(self) -> list[str]:
+        errors: list[str] = []
+        secret = self.secret_key.strip()
+        insecure_secrets = {
+            "",
+            "change-me",
+            "change-this-secret",
+            "change-me-in-production",
+        }
+
+        if self.is_production and secret in insecure_secrets:
+            errors.append(
+                "SECRET_KEY must be set to a strong non-default value when APP_ENV=production."
+            )
+
+        if self.is_production and self.cors_origins == ["*"]:
+            errors.append(
+                "CORS_ORIGINS cannot be '*' when APP_ENV=production. Set the deployed frontend origin explicitly."
+            )
+
+        if self.ai_provider == "openai" and not self.openai_api_key.strip():
+            errors.append("OPENAI_API_KEY is required when AI_PROVIDER=openai.")
+
+        return errors
+
+    def startup_warnings(self) -> list[str]:
+        warnings: list[str] = []
+
+        if self.is_production and self.db_backend == "sqlite":
+            warnings.append(
+                "Production is using SQLite. Use managed MySQL or persistent disk if prediction history must survive redeploys."
+            )
+
+        if self.is_production and self.ai_provider == "llama_cpp":
+            warnings.append(
+                "AI_PROVIDER=llama_cpp requires a reachable external model server from the deployed backend."
+            )
+
+        return warnings
+
 
 def load_settings() -> Settings:
     backend_root = Path(__file__).resolve().parents[1]

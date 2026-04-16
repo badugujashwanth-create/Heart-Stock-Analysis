@@ -18,6 +18,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      FRONTEND_API_BASE_URL: ${{ vars.FRONTEND_API_BASE_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,8 +33,15 @@ jobs:
         run: flutter pub get
         working-directory: frontend
 
+      - name: Validate frontend API configuration
+        run: |
+          if [ -z "$FRONTEND_API_BASE_URL" ]; then
+            echo "Repository variable FRONTEND_API_BASE_URL is required for web deployment."
+            exit 1
+          fi
+
       - name: Build web
-        run: flutter build web --release --base-href "/Heart-Stock-Analysis/"
+        run: flutter build web --release --base-href "/${{ github.event.repository.name }}/" --dart-define=API_BASE_URL=$FRONTEND_API_BASE_URL
         working-directory: frontend
 
       - name: Setup Pages

@@ -22,6 +22,13 @@ logger = logging.getLogger("heartanalysis-backend")
 
 def create_app() -> Flask:
     settings = load_settings()
+    startup_errors = settings.startup_errors()
+    if startup_errors:
+        joined = " ".join(startup_errors)
+        raise RuntimeError(f"Invalid startup configuration. {joined}")
+
+    for warning in settings.startup_warnings():
+        logger.warning("startup_warning: %s", warning)
 
     app = Flask(__name__)
     app.config["APP_ENV"] = settings.app_env

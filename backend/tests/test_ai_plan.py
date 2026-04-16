@@ -5,7 +5,11 @@ import os
 from pathlib import Path
 
 from app.ai.constants import SAFE_MEDICAL_DISCLAIMER
+from app.ai.llama_cpp_provider import LlamaCppProvider
 from app.ai.openai_provider import OpenAIProvider
+from app.ai.provider import AIProviderError
+from app.ai.schemas import AIPlanRequest, PredictionOutputInput
+from app.schemas import PredictionInput
 
 
 def valid_payload() -> dict:
@@ -164,6 +168,28 @@ def _configure_env(tmp_path: Path, *, ai_provider: str, api_key: str = "") -> No
     os.environ["AI_RATE_LIMIT_PER_MINUTE"] = "50"
 
 
+def _sample_plan_request() -> AIPlanRequest:
+    return AIPlanRequest(
+        user_inputs=PredictionInput.model_validate(valid_payload()),
+        prediction_output=PredictionOutputInput(
+            risk_probability=0.74,
+            risk_label="High",
+            top_factors=[
+                {
+                    "feature": "bmi",
+                    "contribution": 0.4,
+                    "value": 1.0,
+                    "direction": "increase",
+                }
+            ],
+            recommendations=["Increase activity"],
+            interpretation="Test output",
+            ai_summary="Test",
+            disclaimer=SAFE_MEDICAL_DISCLAIMER,
+        ),
+    )
+
+
 def _build_client(tmp_path: Path, *, ai_provider: str, api_key: str = ""):
     _configure_env(tmp_path, ai_provider=ai_provider, api_key=api_key)
     from app.db import Base, get_engine
@@ -275,7 +301,7 @@ def test_ai_plan_llama_cpp_provider_mocked(monkeypatch, tmp_path):
             ]
         }
 
-    monkeypatch.setattr(OpenAIProvider, "_post_json", fake_post_json)
+    monkeypatch.setattr(LlamaCppProvider, "_post_json", fake_post_json)
     client = _build_client(tmp_path, ai_provider="llama_cpp")
 
     with client:
@@ -299,3 +325,117 @@ def test_ai_plan_llama_cpp_provider_mocked(monkeypatch, tmp_path):
     body = res.get_json()
     assert body["summary"] == "Personalized lifestyle plan generated from risk profile."
     assert body["disclaimer"] == SAFE_MEDICAL_DISCLAIMER
+
+
+def test_ai_chat_llama_cpp_provider_mocked(monkeypatch, tmp_path):
+    def fake_post_json(self, payload):
+        return {
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(
+                            {
+                                "answer": "Focus on sleep, blood pressure habits, and daily walking.",
+                                "disclaimer": SAFE_MEDICAL_DISCLAIMER,
+                            }
+                        ),
+                    }
+                }
+            ]
+        }
+
+    monkeypatch.setattr(LlamaCppProvider, "_post_json", fake_post_json)
+    client = _build_client(tmp_path, ai_provider="llama_cpp")
+
+    with client:
+        res = client.post(
+            "/v1/ai/chat",
+            json={
+                "message": "What should I focus on this week?",
+                "prediction_output": {
+                    "risk_probability": 0.61,
+                    "risk_label": "High",
+                    "top_factors": [{"feature": "bmi", "contribution": 0.4, "value": 1.0, "direction": "increase"}],
+                    "recommendations": ["Increase activity"],
+                    "interpretation": "Test output",
+                    "ai_summary": "Test",
+                    "disclaimer": SAFE_MEDICAL_DISCLAIMER,
+                },
+            },
+        )
+
+    assert res.status_code == 200
+    body = res.get_json()
+    assert "sleep" in body["answer"].lower()
+    assert body["disclaimer"] == SAFE_MEDICAL_DISCLAIMER
+
+
+def test_llama_cpp_provider_uses_json_schema_and_auth_header(monkeypatch):
+    captured_payload = {}
+
+    def fake_post_json(self, payload):
+        captured_payload["payload"] = payload
+        return {
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(_fake_plan_json()),
+                    }
+                }
+            ]
+        }
+
+    monkeypatch.setattr(LlamaCppProvider, "_post_json", fake_post_json)
+    provider = LlamaCppProvider(
+        model="local-model",
+        base_url="http://127.0.0.1:8080",
+        timeout_seconds=60,
+    )
+
+    plan = provider.generate_plan(_sample_plan_request())
+    payload = captured_payload["payload"]
+
+    assert plan.summary == "Personalized lifestyle plan generated from risk profile."
+    assert payload["response_format"]["type"] == "json_schema"
+    assert payload["response_format"]["schema"]["type"] == "object"
+    assert payload["response_format"]["schema"]["additionalProperties"] is False
+    assert provider._headers()["Authorization"] == "Bearer no-key"
+
+
+def test_llama_cpp_provider_retries_without_schema_on_400(monkeypatch):
+    payload_types = []
+    call_count = 0
+
+    def fake_post_json(self, payload):
+        nonlocal call_count
+        call_count += 1
+        payload_types.append(payload["response_format"]["type"])
+        if call_count == 1:
+            raise AIProviderError(
+                "llama.cpp HTTP error 400: response_format json_schema is not supported"
+            )
+        return {
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(_fake_plan_json()),
+                    }
+                }
+            ]
+        }
+
+    monkeypatch.setattr(LlamaCppProvider, "_post_json", fake_post_json)
+    provider = LlamaCppProvider(
+        model="local-model",
+        base_url="http://127.0.0.1:8080",
+        timeout_seconds=60,
+    )
+
+    first = provider.generate_plan(_sample_plan_request())
+    assert first.summary == "Personalized lifestyle plan generated from risk profile."
+    assert payload_types == ["json_schema", "json_object"]
+
+    payload_types.clear()
+    second = provider.generate_plan(_sample_plan_request())
+    assert second.summary == "Personalized lifestyle plan generated from risk profile."
+    assert payload_types == ["json_object"]

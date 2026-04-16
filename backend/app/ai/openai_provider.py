@@ -1,14 +1,18 @@
 from __future__ import annotations
 
 import json
-from typing import Any, cast
+import re
+from typing import Any, TypeVar, cast
 from urllib import error, request
+
+from pydantic import BaseModel
 
 from .constants import AI_SYSTEM_PROMPT_CHAT, AI_SYSTEM_PROMPT_PLAN, SAFE_MEDICAL_DISCLAIMER
 from .provider import AIProvider, AIProviderError
 from .schemas import AIChatRequest, AIChatResponse, AIPlanRequest, AIPlanResponse
 
 JSONDict = dict[str, Any]
+ResponseModelT = TypeVar("ResponseModelT", bound=BaseModel)
 
 
 class OpenAIProvider(AIProvider):
@@ -69,12 +73,7 @@ class OpenAIProvider(AIProvider):
         }
         response_json: JSONDict = self._post_json(payload)
         content = self._extract_content(response_json)
-
-        try:
-            raw = json.loads(content)
-            plan = AIPlanResponse.model_validate(raw)
-        except Exception as exc:  # pragma: no cover - defensive parsing
-            raise AIProviderError(f"Invalid AI plan response: {exc}") from exc
+        plan = self._parse_model_response(content, AIPlanResponse, "AI plan")
 
         plan_disclaimer = plan.disclaimer if isinstance(plan.disclaimer, str) else ""
         if not plan_disclaimer.strip():
@@ -102,12 +101,7 @@ class OpenAIProvider(AIProvider):
         }
         response_json: JSONDict = self._post_json(payload)
         content = self._extract_content(response_json)
-
-        try:
-            raw = json.loads(content)
-            chat = AIChatResponse.model_validate(raw)
-        except Exception as exc:  # pragma: no cover - defensive parsing
-            raise AIProviderError(f"Invalid AI chat response: {exc}") from exc
+        chat = self._parse_model_response(content, AIChatResponse, "AI chat")
 
         chat_disclaimer = chat.disclaimer if isinstance(chat.disclaimer, str) else ""
         if not chat_disclaimer.strip():
@@ -183,3 +177,39 @@ class OpenAIProvider(AIProvider):
             if texts:
                 return "\n".join(texts)
         raise AIProviderError(f"Unsupported {self._provider_name} content format")
+
+    def _parse_model_response(
+        self,
+        content: str,
+        model_cls: type[ResponseModelT],
+        label: str,
+    ) -> ResponseModelT:
+        try:
+            raw = self._load_json_content(content)
+            return model_cls.model_validate(raw)
+        except Exception as exc:  # pragma: no cover - defensive parsing
+            raise AIProviderError(f"Invalid {label} response: {exc}") from exc
+
+    def _load_json_content(self, content: str) -> Any:
+        text = content.strip()
+        candidates: list[str] = [text]
+
+        fence_match = re.search(r"```(?:json)?\s*(.*?)\s*```", text, flags=re.DOTALL)
+        if fence_match:
+            candidates.append(fence_match.group(1).strip())
+
+        for candidate in candidates:
+            try:
+                return json.loads(candidate)
+            except json.JSONDecodeError:
+                pass
+
+            start = candidate.find("{")
+            end = candidate.rfind("}")
+            if start != -1 and end > start:
+                try:
+                    return json.loads(candidate[start : end + 1])
+                except json.JSONDecodeError:
+                    continue
+
+        raise AIProviderError(f"{self._provider_name} returned invalid JSON content")

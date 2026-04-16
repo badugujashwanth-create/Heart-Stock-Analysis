@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: heartanalysis-backend
+    env: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app.main:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false
+      - key: AI_PROVIDER
+        value: rules
+      - key: DB_BACKEND
+        value: sqlite
+      - key: SQLITE_PATH
+        value: data/app.db
+      - key: MAX_REQUEST_SIZE_KB
+        value: 256
+      - key: AI_RATE_LIMIT_PER_MINUTE
+        value: 30

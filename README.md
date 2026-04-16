@@ -58,6 +58,7 @@ heartanalysis/
 - AI assistant layer:
   - provider mode: `rules`, `llama_cpp` (recommended local inference), or `openai`
   - safe structured output with disclaimer always included
+  - llama.cpp uses the OpenAI-compatible chat completions route with schema-constrained JSON and automatic fallback to plain JSON mode on older server builds
   - `ai_plan_preview` attached to `/v1/predict`
   - full `ai_plan` stored in prediction output payload for history/audit
 - Safety controls:
@@ -86,7 +87,7 @@ MYSQL_PASSWORD=change-me
 
 CORS_ORIGINS=*
 
-AI_PROVIDER=llama_cpp
+AI_PROVIDER=rules
 LLAMA_CPP_MODEL=local-model
 LLAMA_CPP_BASE_URL=http://127.0.0.1:8080
 LLAMA_CPP_TIMEOUT_SECONDS=60
@@ -108,7 +109,7 @@ Rules mode (no model server required):
 AI_PROVIDER=rules
 ```
 
-llama.cpp mode (recommended, no external API key):
+llama.cpp mode (recommended for local inference):
 
 ```env
 AI_PROVIDER=llama_cpp
@@ -117,11 +118,18 @@ LLAMA_CPP_BASE_URL=http://127.0.0.1:8080
 LLAMA_CPP_TIMEOUT_SECONDS=60
 ```
 
+`LLAMA_CPP_BASE_URL` may point either to the server root such as
+`http://127.0.0.1:8080` or to an OpenAI-compatible prefix ending in `/v1`.
+
 Run a local `llama.cpp` server first, for example:
 
 ```bash
 llama-server -m /path/to/model.gguf --host 0.0.0.0 --port 8080
 ```
+
+The backend targets `POST /v1/chat/completions`. When supported, it requests
+schema-constrained JSON for more reliable plan/chat parsing and falls back to
+plain JSON output if the running `llama.cpp` server build rejects `json_schema`.
 
 OpenAI mode:
 
@@ -132,6 +140,12 @@ OPENAI_MODEL=gpt-4.1-mini
 OPENAI_BASE_URL=https://api.openai.com/v1
 OPENAI_TIMEOUT_SECONDS=20
 ```
+
+Production startup now fails fast if:
+
+- `APP_ENV=production` and `SECRET_KEY` is still a default value
+- `APP_ENV=production` and `CORS_ORIGINS=*`
+- `AI_PROVIDER=openai` and `OPENAI_API_KEY` is missing
 
 ### Run Backend Locally
 
@@ -306,6 +320,10 @@ Set the API URL at run/build time:
 flutter run --dart-define=API_BASE_URL=http://localhost:8000
 ```
 
+For GitHub Pages deployment, set the repository variable
+`FRONTEND_API_BASE_URL=https://your-backend-host`. The deploy workflow injects
+that value at build time and now fails if it is missing.
+
 ### Run Frontend Locally
 
 ```bash
@@ -334,7 +352,7 @@ flutter test
 
 GitHub Actions workflow in `.github/workflows/quality-checks.yml` runs on push and pull requests:
 - Backend: `ruff check` + `pytest`
-- Frontend: `flutter analyze` + `flutter test`
+- Frontend: `flutter analyze` + `flutter test` + release web build
 
 ## Production Notes
 
