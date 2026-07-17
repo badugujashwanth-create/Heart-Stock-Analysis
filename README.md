@@ -1,6 +1,12 @@
 # HeartAnalysis Monorepo
 
-Production-ready stroke-risk analysis system with:
+> **Status: MVP / Educational Prototype** — This project is not a medical device and must not be used for diagnosis or treatment decisions.
+
+[![Watch the HeartAnalysis demo](docs/demo/demo-thumbnail.png)](docs/demo/demo.webm)
+
+> Watch the locally recorded Flutter web walkthrough. All data shown is synthetic and the output is educational only.
+
+An educational heart-risk exploration system with:
 - `backend/`: Flask API, validation, interpretable model, persistence, migrations, tests.
 - `frontend/`: Flutter app (Android/Web/Desktop) with Form, Report, History, Assistant, and PDF export.
 
@@ -164,8 +170,7 @@ cd backend
 python -m app.main
 ```
 
-For mobile testing on the same Wi-Fi network, point the Flutter app to your PC IP instead of `localhost`.
-On this machine that address is `192.168.0.2`, so use `http://192.168.0.2:8000`.
+For mobile testing on the same Wi-Fi network, point the Flutter app to your development machine's LAN address instead of `localhost`, for example `http://<your-lan-ip>:8000`.
 For USB testing on a connected Android device, run `adb reverse tcp:8000 tcp:8000` and use `http://127.0.0.1:8000`.
 
 ### Backend Quality Checks
