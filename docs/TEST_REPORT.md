@@ -8,6 +8,7 @@ Audited on 2026-07-17 using the checked-out `portfolio-polish` branch on Windows
 | `backend: python -m pytest -q` | Pass | 18 tests passed |
 | `root: flutter test` | Pass | 9 tests passed |
 | `frontend: flutter analyze / flutter test` | Pass | No issues; 1 test passed |
+| `frontend: GitHub Actions stable Flutter analyze` | Pass with informational warnings | Flutter 3.44 reports two `DropdownButtonFormField.value` deprecations; CI keeps informational diagnostics visible without treating them as errors |
 | `root: flutter analyze` | Fail | Root analysis traverses the nested `frontend` package and reports 32 cross-package errors; run checks per package |
 | `frontend: flutter build web --release` | Pass | Release web bundle generated for the canonical documented client |
 
