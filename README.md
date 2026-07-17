@@ -6,6 +6,8 @@
 
 > Watch the locally recorded Flutter web walkthrough. All data shown is synthetic and the output is educational only.
 
+[Architecture](docs/ARCHITECTURE.md) · [Test evidence](docs/TEST_REPORT.md) · [Interview guide](docs/INTERVIEW_GUIDE.md)
+
 An educational heart-risk exploration system with:
 - `backend/`: Flask API, validation, interpretable model, persistence, migrations, tests.
 - `frontend/`: Flutter app (Android/Web/Desktop) with Form, Report, History, Assistant, and PDF export.
