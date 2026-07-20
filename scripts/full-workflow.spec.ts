@@ -30,7 +30,9 @@ test('synthetic educational profile workflow', async ({ page }) => {
     sliderBox!.y + sliderBox!.height / 2,
   );
   await expect(exerciseSlider).not.toHaveAttribute('aria-valuenow', '50');
-  await page.getByRole('button', { name: 'Run What-If' }).click();
+  const runWhatIfButton = page.getByRole('button', { name: 'Run What-If' });
+  await runWhatIfButton.focus();
+  await runWhatIfButton.press('Enter');
   await expect(page.getByText('Score delta:', { exact: false })).toBeVisible();
 
   await page.getByRole('button', { name: /History Tab/ }).click();
