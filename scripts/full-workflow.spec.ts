@@ -7,6 +7,11 @@ async function enableSemantics(page: import('@playwright/test').Page) {
   await page.locator('flt-semantics').first().waitFor({ state: 'attached' });
 }
 
+async function activate(button: import('@playwright/test').Locator) {
+  await button.focus();
+  await button.press('Enter');
+}
+
 test('synthetic educational profile workflow', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto('/');
@@ -30,16 +35,14 @@ test('synthetic educational profile workflow', async ({ page }) => {
     sliderBox!.y + sliderBox!.height / 2,
   );
   await expect(exerciseSlider).not.toHaveAttribute('aria-valuenow', '50');
-  const runWhatIfButton = page.getByRole('button', { name: 'Run What-If' });
-  await runWhatIfButton.focus();
-  await runWhatIfButton.press('Enter');
+  await activate(page.getByRole('button', { name: 'Run What-If' }));
   await expect(page.getByText('Score delta:', { exact: false })).toBeVisible();
 
-  await page.getByRole('button', { name: /History Tab/ }).click();
+  await activate(page.getByRole('button', { name: /History Tab/ }));
   await expect(page.getByText('Educational Score History', { exact: true })).toBeVisible();
   await expect(page.getByText('band (', { exact: false }).first()).toBeVisible();
 
-  await page.getByRole('button', { name: /Assistant Tab/ }).click();
+  await activate(page.getByRole('button', { name: /Assistant Tab/ }));
   await expect(page.getByText('not medical advice', { exact: false }).first()).toBeVisible();
 });
 
