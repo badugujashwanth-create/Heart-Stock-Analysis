@@ -59,6 +59,61 @@ class _FormScreenState extends State<FormScreen> {
     super.dispose();
   }
 
+  void _loadSyntheticExample() {
+    setState(() {
+      _age.text = '56';
+      _systolic.text = '148';
+      _diastolic.text = '92';
+      _glucose.text = '132.5';
+      _bmi.text = '27.2';
+      _sleep.text = '6';
+      _exercise.text = '25';
+      _gender = 'Male';
+      _hypertension = 'Yes';
+      _heartDisease = 'No';
+      _married = 'Yes';
+      _workType = 'Private';
+      _residence = 'Urban';
+      _smoking = 'Formerly';
+      _alcohol = 'No';
+      _familyHistory = 'Yes';
+      _excessSalt = 'Yes';
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Synthetic example loaded. No real patient data is used.',
+        ),
+      ),
+    );
+  }
+
+  void _clearForm() {
+    setState(() {
+      for (final controller in [
+        _age,
+        _systolic,
+        _diastolic,
+        _glucose,
+        _bmi,
+        _sleep,
+        _exercise,
+      ]) {
+        controller.clear();
+      }
+      _gender = 'Male';
+      _hypertension = 'No';
+      _heartDisease = 'No';
+      _married = 'Yes';
+      _workType = 'Private';
+      _residence = 'Urban';
+      _smoking = 'Never';
+      _alcohol = 'No';
+      _familyHistory = 'No';
+      _excessSalt = 'No';
+    });
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -103,7 +158,7 @@ class _FormScreenState extends State<FormScreen> {
       if (!mounted) return;
       widget.onPredictionCreated();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Prediction generated successfully.')),
+        const SnackBar(content: Text('Educational profile generated.')),
       );
     } on TimeoutException {
       if (!mounted) return;
@@ -112,9 +167,9 @@ class _FormScreenState extends State<FormScreen> {
       );
     } on ApiException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -141,26 +196,115 @@ class _FormScreenState extends State<FormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Stroke Risk Input Form', style: Theme.of(context).textTheme.headlineSmall),
-                    const SizedBox(height: 14),
+                    Text(
+                      'Educational Stroke Profile',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 10),
+                    Card(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.science_outlined),
+                            const SizedBox(width: 10),
+                            const Expanded(
+                              child: Text(
+                                'Synthetic data only. This unvalidated heuristic demonstrates explainable scoring; it is not a medical risk estimate or diagnostic tool.',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        FilledButton.tonalIcon(
+                          onPressed: _loadSyntheticExample,
+                          icon: const Icon(Icons.auto_fix_high_outlined),
+                          label: const Text('Load synthetic example'),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: _clearForm,
+                          icon: const Icon(Icons.restart_alt),
+                          label: const Text('Reset'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    _sectionTitle(context, 'Profile context'),
                     _numberField(_age, 'Age', min: 1, max: 120),
-                    _dropdown('Gender', _gender, const ['Male', 'Female', 'Other'], (v) => _gender = v),
-                    _dropdown('Hypertension', _hypertension, const ['Yes', 'No'], (v) => _hypertension = v),
-                    _dropdown('Heart Disease', _heartDisease, const ['Yes', 'No'], (v) => _heartDisease = v),
-                    _dropdown('Ever Married', _married, const ['Yes', 'No'], (v) => _married = v),
-                    _dropdown('Work Type', _workType,
-                        const ['Private', 'Self-employed', 'Govt', 'Children', 'Never worked'], (v) => _workType = v),
-                    _dropdown('Residence Type', _residence, const ['Urban', 'Rural'], (v) => _residence = v),
-                    _dropdown('Smoking Status', _smoking, const ['Never', 'Formerly', 'Smokes'], (v) => _smoking = v),
+                    _dropdown('Gender', _gender, const [
+                      'Male',
+                      'Female',
+                      'Other',
+                    ], (v) => _gender = v),
+                    _dropdown('Hypertension', _hypertension, const [
+                      'Yes',
+                      'No',
+                    ], (v) => _hypertension = v),
+                    _dropdown('Heart Disease', _heartDisease, const [
+                      'Yes',
+                      'No',
+                    ], (v) => _heartDisease = v),
+                    _dropdown('Ever Married', _married, const [
+                      'Yes',
+                      'No',
+                    ], (v) => _married = v),
+                    _dropdown('Work Type', _workType, const [
+                      'Private',
+                      'Self-employed',
+                      'Govt',
+                      'Children',
+                      'Never worked',
+                    ], (v) => _workType = v),
+                    _dropdown('Residence Type', _residence, const [
+                      'Urban',
+                      'Rural',
+                    ], (v) => _residence = v),
+                    const SizedBox(height: 4),
+                    _sectionTitle(context, 'Health indicators'),
                     _numberField(_systolic, 'Systolic BP', min: 60, max: 260),
                     _numberField(_diastolic, 'Diastolic BP', min: 30, max: 180),
-                    _numberField(_glucose, 'Average Glucose Level', decimal: true, min: 20, max: 600),
+                    _numberField(
+                      _glucose,
+                      'Average Glucose Level',
+                      decimal: true,
+                      min: 20,
+                      max: 600,
+                    ),
                     _numberField(_bmi, 'BMI', decimal: true, min: 10, max: 80),
+                    const SizedBox(height: 4),
+                    _sectionTitle(context, 'Lifestyle context'),
+                    _dropdown('Smoking Status', _smoking, const [
+                      'Never',
+                      'Formerly',
+                      'Smokes',
+                    ], (v) => _smoking = v),
                     _numberField(_sleep, 'Sleep Hours / day', min: 0, max: 24),
-                    _numberField(_exercise, 'Exercise Minutes / day', min: 0, max: 600),
-                    _dropdown('Alcoholic', _alcohol, const ['Yes', 'No'], (v) => _alcohol = v),
-                    _dropdown('Family History', _familyHistory, const ['Yes', 'No'], (v) => _familyHistory = v),
-                    _dropdown('Excess Salt', _excessSalt, const ['Yes', 'No'], (v) => _excessSalt = v),
+                    _numberField(
+                      _exercise,
+                      'Exercise Minutes / day',
+                      min: 0,
+                      max: 600,
+                    ),
+                    _dropdown('Alcoholic', _alcohol, const [
+                      'Yes',
+                      'No',
+                    ], (v) => _alcohol = v),
+                    _dropdown('Family History', _familyHistory, const [
+                      'Yes',
+                      'No',
+                    ], (v) => _familyHistory = v),
+                    _dropdown('Excess Salt', _excessSalt, const [
+                      'Yes',
+                      'No',
+                    ], (v) => _excessSalt = v),
                     const SizedBox(height: 16),
                     FilledButton.icon(
                       onPressed: _loading ? null : _submit,
@@ -171,7 +315,11 @@ class _FormScreenState extends State<FormScreen> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.insights),
-                      label: Text(_loading ? 'Predicting...' : 'Predict Risk'),
+                      label: Text(
+                        _loading
+                            ? 'Generating...'
+                            : 'Generate educational profile',
+                      ),
                     ),
                   ],
                 ),
@@ -180,6 +328,13 @@ class _FormScreenState extends State<FormScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _sectionTitle(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Text(title, style: Theme.of(context).textTheme.titleMedium),
     );
   }
 
@@ -201,13 +356,18 @@ class _FormScreenState extends State<FormScreen> {
           else
             FilteringTextInputFormatter.digitsOnly,
         ],
-        decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
         validator: (value) {
           final text = value?.trim() ?? '';
           if (text.isEmpty) return 'Required';
           final parsed = decimal ? double.tryParse(text) : int.tryParse(text);
           if (parsed == null) return 'Invalid number';
-          if (parsed < min || parsed > max) return 'Must be between $min and $max';
+          if (parsed < min || parsed > max) {
+            return 'Must be between $min and $max';
+          }
           return null;
         },
       ),
@@ -224,8 +384,13 @@ class _FormScreenState extends State<FormScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: DropdownButtonFormField<String>(
         value: value,
-        decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
-        items: options.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
+        items: options
+            .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+            .toList(),
         onChanged: (newValue) {
           if (newValue == null) return;
           setState(() => onChanged(newValue));

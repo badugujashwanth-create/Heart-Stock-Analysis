@@ -23,6 +23,7 @@ class Settings:
     mysql_db: str
     mysql_user: str
     mysql_password: str
+    persist_predictions: bool
     cors_origins: list[str]
     ai_provider: str
     openai_api_key: str
@@ -123,6 +124,8 @@ def load_settings() -> Settings:
         mysql_db=os.getenv("MYSQL_DB", "heartanalysis"),
         mysql_user=os.getenv("MYSQL_USER", "root"),
         mysql_password=os.getenv("MYSQL_PASSWORD", ""),
+        persist_predictions=os.getenv("PERSIST_PREDICTIONS", "false").strip().lower()
+        in {"1", "true", "yes", "on"},
         cors_origins=_parse_origins(os.getenv("CORS_ORIGINS", "*")),
         ai_provider=ai_provider,
         openai_api_key=os.getenv("OPENAI_API_KEY", ""),

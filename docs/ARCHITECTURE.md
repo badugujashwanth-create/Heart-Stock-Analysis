@@ -1,31 +1,27 @@
-# HeartAnalysis architecture
+# Architecture
 
-Flutter client and Flask API for educational heart-risk estimation, history, explanations, and local or MySQL persistence.
-
-## System view
+HeartAnalysis is a two-process educational product. `frontend/` is the canonical Flutter client and `backend/` is the canonical Flask API.
 
 ```mermaid
 flowchart LR
-  N0[Flutter client] --> N1
-  N1[Flask REST API] --> N2
-  N2[Prediction and AI-plan services] --> N3
-  N3[SQLAlchemy repository] --> N4
-  N4[SQLite or MySQL]
+  U[Synthetic profile] --> F[Flutter client]
+  F -->|validated JSON| A[Flask API]
+  A --> H[Uncalibrated heuristic]
+  A --> R[Rules-first assistant]
+  A -->|only when explicitly enabled| D[(SQLite or MySQL)]
+  H --> F
+  R --> F
 ```
 
-## Component boundaries
+## Boundaries
 
-- **Flutter client:** initiates the primary workflow.
-- **Flask REST API:** owns one stage of the request or interaction flow.
-- **Prediction and AI-plan services:** owns one stage of the request or interaction flow.
-- **SQLAlchemy repository:** owns one stage of the request or interaction flow.
-- **SQLite or MySQL:** provides the terminal integration or persistence boundary.
+- The heuristic is deterministic hand-written code, not a trained or calibrated medical model.
+- `score_metadata.medical_probability=false` is returned with every score.
+- `AI_PROVIDER=rules` is deterministic and network-free. llama.cpp and OpenAI-compatible adapters are optional, unverified release boundaries.
+- `PERSIST_PREDICTIONS=false` is the default. The local demo opts in for synthetic history.
+- The API has no end-user authentication or tenant isolation, so public persistence is outside the release boundary.
+- The older root-level Flutter and Python sources are historical and are not CI, demo, or deployment targets.
 
-## Runtime and trust boundaries
+## Failure behavior
 
-This is an educational prototype, not medical advice. The repository contains two Flutter package trees that must be checked independently. Inputs crossing a network, filesystem, provider, or database boundary should be validated and logged without sensitive values. Optional integrations must fail clearly rather than being presented as successful.
-
-## Technology
-
-Flutter/Dart, Flask, Pydantic, SQLAlchemy, Alembic, SQLite/MySQL.
-
+Pydantic rejects malformed inputs with field-level errors. AI provider failures fall back to rules. Requests have size and AI-rate limits. Production rejects default secrets and wildcard CORS. External-provider and database failures must never be presented as successful.

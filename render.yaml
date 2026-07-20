@@ -6,7 +6,7 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app.main:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
     healthCheckPath: /healthz
-    autoDeploy: true
+    autoDeploy: false
     envVars:
       - key: APP_ENV
         value: production
@@ -20,6 +20,8 @@ services:
         value: sqlite
       - key: SQLITE_PATH
         value: data/app.db
+      - key: PERSIST_PREDICTIONS
+        value: false
       - key: MAX_REQUEST_SIZE_KB
         value: 256
       - key: AI_RATE_LIMIT_PER_MINUTE

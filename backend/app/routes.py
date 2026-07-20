@@ -118,44 +118,50 @@ def _predict_handler():
         return parsed
     model_input = parsed
 
-    with session_scope() as session:
-        previous = latest_prediction_summary(session)
-        output = run_model(model_input)
+    persistence_enabled = bool(current_app.config.get("PERSIST_PREDICTIONS", False))
+    previous = None
+    if persistence_enabled:
+        with session_scope() as session:
+            previous = latest_prediction_summary(session)
 
-        output["assistant_context"] = {
-            "latest_prediction_summary": previous,
-            "current_prediction_summary": {
-                "risk_probability": output["risk_probability"],
-                "risk_label": output["risk_label"],
-                "interpretation": output["interpretation"],
-            },
-            "prompt_hint": "Use top_factors and recommendations to explain next best actions.",
-        }
-        output_for_storage = dict(output)
+    output = run_model(model_input)
+    output["persistence_enabled"] = persistence_enabled
+    output["assistant_context"] = {
+        "latest_prediction_summary": previous,
+        "current_prediction_summary": {
+            "risk_probability": output["risk_probability"],
+            "risk_label": output["risk_label"],
+            "interpretation": output["interpretation"],
+        },
+        "prompt_hint": "Use top_factors and recommendations to explain next best actions.",
+    }
+    output_for_storage = dict(output)
 
-        try:
-            ai_service = _get_ai_service()
-            ai_plan_request = AIPlanRequest(
-                user_inputs=model_input,
-                prediction_output=PredictionOutputInput.model_validate(output),
-            )
-            ai_plan = ai_service.generate_plan(ai_plan_request)
-            output["ai_plan_preview"] = ai_service.preview(ai_plan).model_dump()
-            output_for_storage["ai_plan"] = ai_plan.model_dump()
-        except Exception as exc:
-            logger.exception("ai_preview_generation_failed: %s", exc)
-            output["ai_plan_preview"] = {
-                "summary": "AI plan preview is temporarily unavailable.",
-                "top_priorities": [],
-                "disclaimer": output.get("disclaimer", ""),
-            }
-
-        save_prediction(
-            session,
-            request_id=_current_request_id(),
-            payload=model_input,
-            output=output_for_storage,
+    try:
+        ai_service = _get_ai_service()
+        ai_plan_request = AIPlanRequest(
+            user_inputs=model_input,
+            prediction_output=PredictionOutputInput.model_validate(output),
         )
+        ai_plan = ai_service.generate_plan(ai_plan_request)
+        output["ai_plan_preview"] = ai_service.preview(ai_plan).model_dump()
+        output_for_storage["ai_plan"] = ai_plan.model_dump()
+    except Exception as exc:
+        logger.exception("ai_preview_generation_failed: %s", exc)
+        output["ai_plan_preview"] = {
+            "summary": "AI plan preview is temporarily unavailable.",
+            "top_priorities": [],
+            "disclaimer": output.get("disclaimer", ""),
+        }
+
+    if persistence_enabled:
+        with session_scope() as session:
+            save_prediction(
+                session,
+                request_id=_current_request_id(),
+                payload=model_input,
+                output=output_for_storage,
+            )
 
     return jsonify(output)
 
@@ -265,6 +271,7 @@ def simulate_v1():
             },
             "changed_factors": changed_factors,
             "disclaimer": baseline_output["disclaimer"],
+            "score_metadata": baseline_output["score_metadata"],
         }
     )
 
@@ -334,7 +341,16 @@ def predictions_history():
             400,
         )
 
-    with session_scope() as session:
-        records = list_predictions(session, limit)
+    persistence_enabled = bool(current_app.config.get("PERSIST_PREDICTIONS", False))
+    records = []
+    if persistence_enabled:
+        with session_scope() as session:
+            records = list_predictions(session, limit)
 
-    return jsonify({"count": len(records), "records": records})
+    return jsonify(
+        {
+            "count": len(records),
+            "records": records,
+            "persistence_enabled": persistence_enabled,
+        }
+    )

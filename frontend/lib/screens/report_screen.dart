@@ -67,9 +67,9 @@ class _ReportScreenState extends State<ReportScreen> {
       );
       widget.appState.setLatestAiPlan(plan);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('AI plan generated.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('AI plan generated.')));
     } on TimeoutException {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -77,9 +77,9 @@ class _ReportScreenState extends State<ReportScreen> {
       );
     } on ApiException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -99,7 +99,9 @@ class _ReportScreenState extends State<ReportScreen> {
       return;
     }
     final nextSignature = plan.habits
-        .map((habit) => '${habit.habit}|${habit.target}|${habit.tips.join(",")}')
+        .map(
+          (habit) => '${habit.habit}|${habit.target}|${habit.tips.join(",")}',
+        )
         .join('||');
     if (_habitPlanSignature == nextSignature) return;
     _habitChecks
@@ -141,7 +143,7 @@ class _ReportScreenState extends State<ReportScreen> {
                         ),
                         const SizedBox(height: 8),
                         const Text(
-                          'Submit the form in the Input tab to generate your first stroke risk report.',
+                          'Load the synthetic example in the Input tab to generate an educational scorecard.',
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -166,7 +168,7 @@ class _ReportScreenState extends State<ReportScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Risk Report',
+                        'Educational Scorecard',
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                     ),
@@ -179,14 +181,22 @@ class _ReportScreenState extends State<ReportScreen> {
                             ? const SizedBox(
                                 width: 16,
                                 height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Icon(Icons.psychology_outlined),
-                        label: Text(_generatingAiPlan ? 'Generating...' : 'Generate AI Plan'),
+                        label: Text(
+                          _generatingAiPlan
+                              ? 'Generating...'
+                              : 'Generate AI Plan',
+                        ),
                       ),
                     const SizedBox(width: 8),
                     FilledButton.icon(
-                      onPressed: _exporting ? null : () => _exportReport(result, aiPlan),
+                      onPressed: _exporting
+                          ? null
+                          : () => _exportReport(result, aiPlan),
                       icon: _exporting
                           ? const SizedBox(
                               width: 16,
@@ -314,8 +324,12 @@ class _ReportScreenState extends State<ReportScreen> {
                 const Text('No AI plan generated yet.'),
               const SizedBox(height: 10),
               FilledButton.tonal(
-                onPressed: _generatingAiPlan ? null : () => _generateAiPlan(result, latestInput),
-                child: Text(_generatingAiPlan ? 'Generating...' : 'Generate Full AI Plan'),
+                onPressed: _generatingAiPlan
+                    ? null
+                    : () => _generateAiPlan(result, latestInput),
+                child: Text(
+                  _generatingAiPlan ? 'Generating...' : 'Generate Full AI Plan',
+                ),
               ),
             ],
           ),
@@ -411,7 +425,9 @@ class _ReportScreenState extends State<ReportScreen> {
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                     title: Text('${row.day}: ${row.workout}'),
-                    subtitle: Text('${row.durationMin} min - ${row.intensity} intensity'),
+                    subtitle: Text(
+                      '${row.durationMin} min - ${row.intensity} intensity',
+                    ),
                   ),
                 )
                 .toList(growable: false),
@@ -422,20 +438,26 @@ class _ReportScreenState extends State<ReportScreen> {
           context,
           title: 'Habits Checklist ($completedHabits/${aiPlan.habits.length})',
           child: Column(
-            children: aiPlan.habits.asMap().entries.map((entry) {
-              final index = entry.key;
-              final habit = entry.value;
-              return CheckboxListTile(
-                value: _habitChecks[index] ?? false,
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                title: Text(habit.habit),
-                subtitle: Text('${habit.target}\n${habit.tips.join(" - ")}'),
-                onChanged: (value) {
-                  setState(() => _habitChecks[index] = value ?? false);
-                },
-              );
-            }).toList(growable: false),
+            children: aiPlan.habits
+                .asMap()
+                .entries
+                .map((entry) {
+                  final index = entry.key;
+                  final habit = entry.value;
+                  return CheckboxListTile(
+                    value: _habitChecks[index] ?? false,
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(habit.habit),
+                    subtitle: Text(
+                      '${habit.target}\n${habit.tips.join(" - ")}',
+                    ),
+                    onChanged: (value) {
+                      setState(() => _habitChecks[index] = value ?? false);
+                    },
+                  );
+                })
+                .toList(growable: false),
           ),
         ),
       ],

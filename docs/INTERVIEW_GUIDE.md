@@ -1,41 +1,25 @@
-# HeartAnalysis interview guide
+# Interview guide
 
-## Tell me about this project.
+## What is HeartAnalysis?
 
-HeartAnalysis is an educational Flutter and Flask application for exploring heart-risk inputs, explanations, history, and reports. It is not medical software or a diagnostic tool.
+It is an educational Flutter/Flask systems demo for explainable scoring, validation, what-if interaction, and safe product boundaries. It is not medical software.
 
-## Why did you build it?
+## What was the important engineering decision?
 
-The project explores how an applied model can be presented with context and disclaimers instead of displaying an unexplained score.
+The original hand-coded heuristic was presented like a calibrated stroke-risk probability. I kept the compatibility field but changed the contract, UI, PDF, model card, and documentation to identify it as an unvalidated educational score. I also made persistence opt-in because the API has no user authentication.
 
-## What was your contribution?
+## What does the architecture demonstrate?
 
-Discuss the Flask API, Flutter client flows, SQLAlchemy persistence, tests, report/explanation UX, and portfolio claim corrections. Do not present the output as clinical advice.
+Flutter state and responsive UI, Flask/Pydantic API contracts, SQLAlchemy persistence, deterministic rules fallback, optional provider adapters, request controls, PDF generation, and browser automation.
 
-## What was the hardest technical problem?
+## How is it tested?
 
-Keeping backend/model behavior and two Flutter package trees reproducible while avoiding misleading health claims.
+The release candidate has 19 API tests, 2 canonical Flutter widget tests, lint/analyze checks, a production web build, Python/Node dependency audits, and 2 Chromium tests covering the full synthetic workflow and mobile overflow.
 
-## How does the architecture work?
+## What remains?
 
-Flutter clients call the Flask API; SQLAlchemy manages history/storage; provider modes are environment-controlled; reports and explanations are presented by the client.
+Historical-package consolidation, credential rotation confirmation, authentication and tenant isolation for retained public history, provider-profile verification, physical-device accessibility, and every form of clinical validation.
 
-## What would you improve?
+## Safe résumé language
 
-Consolidate the Flutter package layout, add model-card/data provenance, accessibility review, calibration/evaluation evidence, and clinician-led validation before any medical use.
-
-## How did you test it?
-
-Eighteen backend tests, nine root Flutter tests, and one canonical frontend test pass. The canonical Flutter web build and package-scoped analyzers pass.
-
-## What are its security limitations?
-
-Health inputs can be sensitive. A real deployment would need consent, encryption, retention/deletion policy, access control, audit logging, and regulatory review.
-
-## How would you scale it?
-
-Use managed API/database services, separate model serving if needed, cache only non-sensitive assets, and add privacy-aware observability. Evaluation quality matters more than request volume.
-
-## What did you learn?
-
-Applied analytics must communicate uncertainty, provenance, and intended use; technically correct code can still be harmful if its product claims are careless.
+“Built and release-hardened a Flutter/Flask educational scoring system with deterministic what-if workflows, default-off persistence, dependency audits, and Chromium end-to-end verification.”

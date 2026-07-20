@@ -153,22 +153,25 @@ class PredictionResult {
         .map((e) => TopFactor.fromJson(Map<String, dynamic>.from(e)))
         .toList(growable: false);
 
-    final recommendations = (json['recommendations'] as List<dynamic>? ?? const [])
-        .whereType<String>()
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList(growable: false);
+    final recommendations =
+        (json['recommendations'] as List<dynamic>? ?? const [])
+            .whereType<String>()
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList(growable: false);
 
     return PredictionResult(
       riskProbability: probability,
       riskLabel: (json['risk_label'] ?? _fallbackLabel(probability)).toString(),
       topFactors: factors,
       recommendations: recommendations,
-      interpretation: (json['interpretation'] ?? 'No interpretation available.').toString(),
-      aiSummary: (json['ai_summary'] ?? 'No AI summary available.').toString(),
-      disclaimer: (json['disclaimer'] ??
-              'This output is informational and not a medical diagnosis.')
+      interpretation: (json['interpretation'] ?? 'No interpretation available.')
           .toString(),
+      aiSummary: (json['ai_summary'] ?? 'No AI summary available.').toString(),
+      disclaimer:
+          (json['disclaimer'] ??
+                  'This output is informational and not a medical diagnosis.')
+              .toString(),
       assistantContext: Map<String, dynamic>.from(
         json['assistant_context'] as Map? ?? const {},
       ),
@@ -177,7 +180,10 @@ class PredictionResult {
   }
 
   static double _readProbability(Map<String, dynamic> json) {
-    final raw = json['risk_probability'] ?? json['stroke_prediction'] ?? json['stroke_probability'];
+    final raw =
+        json['risk_probability'] ??
+        json['stroke_prediction'] ??
+        json['stroke_probability'];
     if (raw is num) {
       final value = raw.toDouble();
       if (value > 1) return value / 100.0;
@@ -191,7 +197,7 @@ class PredictionResult {
     if (probability < 0.4) return 'Moderate';
     if (probability < 0.6) return 'Elevated';
     if (probability < 0.8) return 'High';
-    return 'Critical';
+    return 'Very high';
   }
 
   static AiPlanPreview? _parseAiPlanPreview(dynamic raw) {
@@ -223,12 +229,17 @@ class HistoryRecord {
     return HistoryRecord(
       id: (json['id'] as num?)?.toInt() ?? 0,
       timestamp: (json['timestamp'] ?? '').toString(),
-      riskProbability: (json['risk_probability'] as num?)?.toDouble() ??
+      riskProbability:
+          (json['risk_probability'] as num?)?.toDouble() ??
           (json['riskProbability'] as num?)?.toDouble() ??
           0,
       riskLabel: (json['risk_label'] ?? '').toString(),
-      inputPayload: Map<String, dynamic>.from(json['input_payload'] as Map? ?? const {}),
-      outputPayload: Map<String, dynamic>.from(json['output_payload'] as Map? ?? const {}),
+      inputPayload: Map<String, dynamic>.from(
+        json['input_payload'] as Map? ?? const {},
+      ),
+      outputPayload: Map<String, dynamic>.from(
+        json['output_payload'] as Map? ?? const {},
+      ),
     );
   }
 }
@@ -281,25 +292,29 @@ class SimulationResult {
     final simulated = Map<String, dynamic>.from(
       json['simulated'] as Map? ?? const {},
     );
-    final delta = Map<String, dynamic>.from(
-      json['delta'] as Map? ?? const {},
-    );
+    final delta = Map<String, dynamic>.from(json['delta'] as Map? ?? const {});
     final changes = (json['changed_factors'] as List<dynamic>? ?? const [])
         .whereType<Map>()
-        .map((item) => SimulationChange.fromJson(Map<String, dynamic>.from(item)))
+        .map(
+          (item) => SimulationChange.fromJson(Map<String, dynamic>.from(item)),
+        )
         .toList(growable: false);
 
     return SimulationResult(
-      baselineRiskProbability: (baseline['risk_probability'] as num?)?.toDouble() ?? 0,
+      baselineRiskProbability:
+          (baseline['risk_probability'] as num?)?.toDouble() ?? 0,
       baselineRiskLabel: (baseline['risk_label'] ?? '').toString(),
-      simulatedRiskProbability: (simulated['risk_probability'] as num?)?.toDouble() ?? 0,
+      simulatedRiskProbability:
+          (simulated['risk_probability'] as num?)?.toDouble() ?? 0,
       simulatedRiskLabel: (simulated['risk_label'] ?? '').toString(),
-      deltaRiskProbability: (delta['risk_probability'] as num?)?.toDouble() ?? 0,
+      deltaRiskProbability:
+          (delta['risk_probability'] as num?)?.toDouble() ?? 0,
       deltaDirection: (delta['direction'] ?? 'unchanged').toString(),
       changedFactors: changes,
-      disclaimer: (json['disclaimer'] ??
-              'This output is informational and not a medical diagnosis.')
-          .toString(),
+      disclaimer:
+          (json['disclaimer'] ??
+                  'This output is informational and not a medical diagnosis.')
+              .toString(),
     );
   }
 }
@@ -337,10 +352,7 @@ class AiPlanPreviewPriority {
   final String title;
   final String why;
 
-  const AiPlanPreviewPriority({
-    required this.title,
-    required this.why,
-  });
+  const AiPlanPreviewPriority({required this.title, required this.why});
 
   factory AiPlanPreviewPriority.fromJson(Map<String, dynamic> json) {
     return AiPlanPreviewPriority(
@@ -366,11 +378,15 @@ class AiPlanPreview {
       summary: (json['summary'] ?? '').toString(),
       topPriorities: (json['top_priorities'] as List<dynamic>? ?? const [])
           .whereType<Map>()
-          .map((row) => AiPlanPreviewPriority.fromJson(Map<String, dynamic>.from(row)))
+          .map(
+            (row) =>
+                AiPlanPreviewPriority.fromJson(Map<String, dynamic>.from(row)),
+          )
           .toList(growable: false),
-      disclaimer: (json['disclaimer'] ??
-              'This output is informational and not a medical diagnosis.')
-          .toString(),
+      disclaimer:
+          (json['disclaimer'] ??
+                  'This output is informational and not a medical diagnosis.')
+              .toString(),
     );
   }
 }
@@ -511,7 +527,9 @@ class AiDietPlan {
           .toList(growable: false),
       weeklyPlan: (json['weekly_plan'] as List<dynamic>? ?? const [])
           .whereType<Map>()
-          .map((row) => AiDietWeeklyPlan.fromJson(Map<String, dynamic>.from(row)))
+          .map(
+            (row) => AiDietWeeklyPlan.fromJson(Map<String, dynamic>.from(row)),
+          )
           .toList(growable: false),
     );
   }
@@ -558,7 +576,11 @@ class AiExercisePlan {
           .toList(growable: false),
       weeklySchedule: (json['weekly_schedule'] as List<dynamic>? ?? const [])
           .whereType<Map>()
-          .map((row) => AiExerciseWeeklySchedule.fromJson(Map<String, dynamic>.from(row)))
+          .map(
+            (row) => AiExerciseWeeklySchedule.fromJson(
+              Map<String, dynamic>.from(row),
+            ),
+          )
           .toList(growable: false),
       progression: (json['progression'] as List<dynamic>? ?? const [])
           .whereType<String>()
@@ -628,9 +650,10 @@ class AiPlan {
       redFlags: (json['red_flags'] as List<dynamic>? ?? const [])
           .whereType<String>()
           .toList(growable: false),
-      disclaimer: (json['disclaimer'] ??
-              'This output is informational and not a medical diagnosis.')
-          .toString(),
+      disclaimer:
+          (json['disclaimer'] ??
+                  'This output is informational and not a medical diagnosis.')
+              .toString(),
     );
   }
 }
@@ -639,17 +662,15 @@ class AiChatResponseData {
   final String answer;
   final String disclaimer;
 
-  const AiChatResponseData({
-    required this.answer,
-    required this.disclaimer,
-  });
+  const AiChatResponseData({required this.answer, required this.disclaimer});
 
   factory AiChatResponseData.fromJson(Map<String, dynamic> json) {
     return AiChatResponseData(
       answer: (json['answer'] ?? '').toString(),
-      disclaimer: (json['disclaimer'] ??
-              'This output is informational and not a medical diagnosis.')
-          .toString(),
+      disclaimer:
+          (json['disclaimer'] ??
+                  'This output is informational and not a medical diagnosis.')
+              .toString(),
     );
   }
 }

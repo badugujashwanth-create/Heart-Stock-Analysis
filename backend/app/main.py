@@ -34,6 +34,7 @@ def create_app() -> Flask:
     app.config["APP_ENV"] = settings.app_env
     app.config["SECRET_KEY"] = settings.secret_key
     app.config["DB_BACKEND"] = settings.db_backend
+    app.config["PERSIST_PREDICTIONS"] = settings.persist_predictions
     app.config["SQLALCHEMY_DATABASE_URI"] = settings.sqlalchemy_database_uri
     app.config["AI_PROVIDER"] = settings.ai_provider
     app.config["OPENAI_MODEL"] = settings.openai_model

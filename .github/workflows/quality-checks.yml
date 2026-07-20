@@ -2,6 +2,7 @@ name: Monorepo CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 jobs:
@@ -31,6 +32,11 @@ jobs:
       - name: Pytest
         run: pytest -q
 
+      - name: Dependency audit
+        run: |
+          python -m pip install pip-audit
+          python -m pip_audit -r requirements.txt
+
   flutter:
     name: Flutter Analyze + Test
     runs-on: ubuntu-latest
@@ -57,3 +63,63 @@ jobs:
 
       - name: Build web release bundle
         run: flutter build web --release --dart-define=API_BASE_URL=https://api.example.com
+
+  safe-demo:
+    name: Synthetic Browser Workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -r backend/requirements.txt
+          npm ci
+          cd frontend && flutter pub get
+
+      - name: Audit browser dependencies
+        run: npm audit --audit-level=moderate
+
+      - name: Build educational web client
+        working-directory: frontend
+        run: flutter build web --release --dart-define=API_BASE_URL=http://127.0.0.1:8000
+
+      - name: Start deterministic local services
+        env:
+          APP_ENV: development
+          AI_PROVIDER: rules
+          SQLITE_PATH: data/ci-demo.db
+          CORS_ORIGINS: http://127.0.0.1:8085
+          PERSIST_PREDICTIONS: 'true'
+        run: |
+          cd backend
+          nohup python -m app.main > ../backend-demo.log 2>&1 &
+          cd ../frontend/build/web
+          nohup python -m http.server 8085 --bind 127.0.0.1 > ../../../web-demo.log 2>&1 &
+
+      - name: Wait for services
+        run: |
+          curl --fail --retry 30 --retry-delay 1 --retry-connrefused http://127.0.0.1:8000/healthz
+          curl --fail --retry 30 --retry-delay 1 --retry-connrefused http://127.0.0.1:8085
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run synthetic browser workflow
+        run: npm run test:demo

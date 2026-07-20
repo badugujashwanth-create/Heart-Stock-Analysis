@@ -25,7 +25,10 @@ class RiskGauge extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Risk Gauge', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              'Educational profile score',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 12),
             LinearProgressIndicator(
               value: probability.clamp(0, 1),
@@ -36,9 +39,15 @@ class RiskGauge extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('${pct.toStringAsFixed(1)}%', style: Theme.of(context).textTheme.headlineSmall),
+                Text(
+                  '${pct.toStringAsFixed(1)} / 100',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),

@@ -1,18 +1,9 @@
 # Recording guide
 
-## Preparation
+1. Install backend, Flutter, Node, Chromium, and FFmpeg dependencies.
+2. Start only the local rules-mode stack with prediction persistence enabled for the isolated synthetic database.
+3. Run `scripts/record-demo.ps1 -UseExistingServices` or let the script start its own services.
+4. Confirm the WebM exceeds three minutes, is 1280×720, contains VP9 video and Opus narration, and matches `demo.sha256`.
+5. Open all milestone frames together and reject any capture with secrets, personal data, broken layout, loading failures, or misleading claims.
 
-1. Install dependencies using docs/DEVELOPMENT.md.
-2. Copy example environment files and use only local or synthetic values.
-3. Start the demo with scripts/run-demo.ps1 or the component-specific command.
-4. Confirm the complete workflow manually before recording.
-5. Close notifications, unrelated applications, password managers, and personal browser profiles.
-
-## Record
-
-For a web-capable build, run scripts/record-demo.ps1 with the healthy local BaseUrl. The Playwright specification captures an overview screenshot, thumbnail, and WebM video. Review every frame before committing it.
-
-## Post-production
-
-Trim loading time only; do not splice in fake success states. Add demo-captions.vtt. If FFmpeg is available, create a compressed MP4 and preview GIF, then verify size and readability. Never commit a large raw capture.
-
+The final video is a release/portfolio asset, not a dedicated in-product navigation section.

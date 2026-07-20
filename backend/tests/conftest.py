@@ -20,6 +20,7 @@ def _configure_test_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None
     monkeypatch.setenv("OPENAI_TIMEOUT_SECONDS", "20")
     monkeypatch.setenv("MAX_REQUEST_SIZE_KB", "256")
     monkeypatch.setenv("AI_RATE_LIMIT_PER_MINUTE", "50")
+    monkeypatch.setenv("PERSIST_PREDICTIONS", "true")
 
 
 @pytest.fixture()

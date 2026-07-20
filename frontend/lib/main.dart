@@ -51,7 +51,7 @@ class _HeartAnalysisAppState extends State<HeartAnalysisApp> {
       value: _appState,
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'HeartAnalysis',
+        title: 'HeartAnalysis — Educational Profile Explorer',
         theme: ThemeData(
           useMaterial3: true,
           brightness: Brightness.light,
@@ -109,10 +109,16 @@ class _HomeShellState extends State<_HomeShell> {
 
     final destinations = const [
       NavigationDestination(icon: Icon(Icons.edit_note), label: 'Input'),
-      NavigationDestination(icon: Icon(Icons.analytics_outlined), label: 'Report'),
+      NavigationDestination(
+        icon: Icon(Icons.analytics_outlined),
+        label: 'Report',
+      ),
       NavigationDestination(icon: Icon(Icons.history), label: 'History'),
       NavigationDestination(icon: Icon(Icons.tune), label: 'What-If'),
-      NavigationDestination(icon: Icon(Icons.assistant_outlined), label: 'Assistant'),
+      NavigationDestination(
+        icon: Icon(Icons.assistant_outlined),
+        label: 'Assistant',
+      ),
     ];
 
     return LayoutBuilder(
@@ -122,14 +128,15 @@ class _HomeShellState extends State<_HomeShell> {
         if (wide) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('HeartAnalysis'),
+              title: const Text('HeartAnalysis · Educational demo'),
               centerTitle: false,
             ),
             body: Row(
               children: [
                 NavigationRail(
                   selectedIndex: _index,
-                  onDestinationSelected: (value) => setState(() => _index = value),
+                  onDestinationSelected: (value) =>
+                      setState(() => _index = value),
                   labelType: NavigationRailLabelType.all,
                   destinations: const [
                     NavigationRailDestination(
@@ -163,7 +170,7 @@ class _HomeShellState extends State<_HomeShell> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('HeartAnalysis'),
+            title: const Text('HeartAnalysis · Educational demo'),
             centerTitle: false,
           ),
           body: tabs[_index],
