@@ -114,8 +114,8 @@ jobs:
 
       - name: Wait for services
         run: |
-          curl --fail --retry 30 --retry-delay 1 http://127.0.0.1:8000/healthz
-          curl --fail --retry 30 --retry-delay 1 http://127.0.0.1:8085
+          curl --fail --retry 30 --retry-delay 1 --retry-connrefused http://127.0.0.1:8000/healthz
+          curl --fail --retry 30 --retry-delay 1 --retry-connrefused http://127.0.0.1:8085
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
