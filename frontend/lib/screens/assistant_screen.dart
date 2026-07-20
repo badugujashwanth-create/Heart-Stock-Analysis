@@ -78,12 +78,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() {
-        _messages.add(
-          _ChatMessage(
-            role: 'assistant',
-            text: e.message,
-          ),
-        );
+        _messages.add(_ChatMessage(role: 'assistant', text: e.message));
       });
     } catch (_) {
       if (!mounted) return;
@@ -118,13 +113,15 @@ class _AssistantScreenState extends State<AssistantScreen> {
       widget.appState.setLatestAiPlan(plan);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('AI plan generated for assistant context.')),
+        const SnackBar(
+          content: Text('AI plan generated for assistant context.'),
+        ),
       );
     } on ApiException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -152,7 +149,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
             child: Padding(
               padding: EdgeInsets.all(24),
               child: Text(
-                'No prediction context available yet. Generate a report first, then use this assistant tab.',
+                'No educational profile is available yet. Generate one from synthetic inputs before using the assistant.',
                 textAlign: TextAlign.center,
               ),
             ),
@@ -169,7 +166,10 @@ class _AssistantScreenState extends State<AssistantScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
-                      Text('AI Assistant', style: Theme.of(context).textTheme.headlineSmall),
+                      Text(
+                        'AI Assistant',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
                       const SizedBox(height: 8),
                       Card(
                         child: Padding(
@@ -185,9 +185,9 @@ class _AssistantScreenState extends State<AssistantScreen> {
                               if (aiPlan != null) ...[
                                 Text(aiPlan.summary),
                                 const SizedBox(height: 8),
-                                ...aiPlan.topPriorities.take(3).map(
-                                      (p) => Text('- ${p.title}: ${p.why}'),
-                                    ),
+                                ...aiPlan.topPriorities
+                                    .take(3)
+                                    .map((p) => Text('- ${p.title}: ${p.why}')),
                                 const SizedBox(height: 8),
                                 Text(
                                   aiPlan.disclaimer,
@@ -196,9 +196,9 @@ class _AssistantScreenState extends State<AssistantScreen> {
                               ] else if (aiPreview != null) ...[
                                 Text(aiPreview.summary),
                                 const SizedBox(height: 8),
-                                ...aiPreview.topPriorities.take(3).map(
-                                      (p) => Text('- ${p.title}: ${p.why}'),
-                                    ),
+                                ...aiPreview.topPriorities
+                                    .take(3)
+                                    .map((p) => Text('- ${p.title}: ${p.why}')),
                                 const SizedBox(height: 8),
                                 Text(
                                   aiPreview.disclaimer,
@@ -213,11 +213,15 @@ class _AssistantScreenState extends State<AssistantScreen> {
                                       ? const SizedBox(
                                           width: 16,
                                           height: 16,
-                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
                                         )
                                       : const Icon(Icons.psychology_outlined),
                                   label: Text(
-                                    _generatingPlan ? 'Generating...' : 'Generate Full AI Plan',
+                                    _generatingPlan
+                                        ? 'Generating...'
+                                        : 'Generate Full AI Plan',
                                   ),
                                 ),
                               ] else ...[
@@ -233,11 +237,15 @@ class _AssistantScreenState extends State<AssistantScreen> {
                                       ? const SizedBox(
                                           width: 16,
                                           height: 16,
-                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
                                         )
                                       : const Icon(Icons.psychology_outlined),
                                   label: Text(
-                                    _generatingPlan ? 'Generating...' : 'Generate AI Plan',
+                                    _generatingPlan
+                                        ? 'Generating...'
+                                        : 'Generate AI Plan',
                                   ),
                                 ),
                               ],
@@ -249,7 +257,9 @@ class _AssistantScreenState extends State<AssistantScreen> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Text(
@@ -285,7 +295,8 @@ class _AssistantScreenState extends State<AssistantScreen> {
                             maxLines: 4,
                             decoration: const InputDecoration(
                               labelText: 'Ask assistant',
-                              hintText: 'What are the top 3 things to focus this week?',
+                              hintText:
+                                  'What are the top 3 things to focus this week?',
                               border: OutlineInputBorder(),
                             ),
                             onSubmitted: (_) => _sendMessage(
@@ -300,15 +311,17 @@ class _AssistantScreenState extends State<AssistantScreen> {
                           onPressed: _sending
                               ? null
                               : () => _sendMessage(
-                                    prediction: prediction,
-                                    input: input,
-                                    aiPlan: aiPlan,
-                                  ),
+                                  prediction: prediction,
+                                  input: input,
+                                  aiPlan: aiPlan,
+                                ),
                           icon: _sending
                               ? const SizedBox(
                                   width: 16,
                                   height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : const Icon(Icons.send),
                           label: Text(_sending ? 'Sending...' : 'Send'),
@@ -331,11 +344,7 @@ class _ChatMessage {
   final String text;
   final String? disclaimer;
 
-  const _ChatMessage({
-    required this.role,
-    required this.text,
-    this.disclaimer,
-  });
+  const _ChatMessage({required this.role, required this.text, this.disclaimer});
 }
 
 class _ChatBubble extends StatelessWidget {
@@ -365,7 +374,8 @@ class _ChatBubble extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(message.text),
-            if (message.disclaimer != null && message.disclaimer!.isNotEmpty) ...[
+            if (message.disclaimer != null &&
+                message.disclaimer!.isNotEmpty) ...[
               const SizedBox(height: 6),
               Text(
                 message.disclaimer!,

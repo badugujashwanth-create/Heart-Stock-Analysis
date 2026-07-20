@@ -84,7 +84,7 @@ class PredictionFactor(BaseModel):
 
 class PredictionOutput(BaseModel):
     risk_probability: float
-    risk_label: Literal["Low", "Moderate", "Elevated", "High", "Critical"]
+    risk_label: Literal["Low", "Moderate", "Elevated", "High", "Very high"]
     top_factors: list[PredictionFactor]
     recommendations: list[str]
     interpretation: str

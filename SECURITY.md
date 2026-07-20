@@ -1,19 +1,18 @@
 # Security policy
 
-## Supported status
+HeartAnalysis is a portfolio prototype, not a medical device or production health-data service.
 
-HeartAnalysis is maintained as a portfolio project and This is an educational prototype, not medical advice. The repository contains two Flutter package trees that must be checked independently.
+## Data and deployment rules
 
-## Reporting a vulnerability
+- Use synthetic inputs only.
+- Prediction persistence is off by default and must remain off on unauthenticated public infrastructure.
+- Do not publicly deploy retained history without authentication, authorization, tenant isolation, encryption, retention controls, and a privacy review.
+- Keep rules mode as the credential-free default. Do not enable external AI providers without explicit authorization and secret management.
+- Production requires a strong secret and an explicit CORS origin.
+- The historical password formerly present in `backend/.env.example` must be rotated if it was ever used.
+- Two historical Google API keys in the initial commit's Android configuration must be restricted or rotated in the provider console.
+- Current-tree removal does not erase Git history; the full history is intentionally reported as not clean until those provider actions are confirmed.
 
-Use GitHub's private vulnerability reporting feature when it is enabled. Otherwise, contact the repository owner through an existing verified GitHub contact channel. Do not include secrets, access tokens, private URLs, or personal data in a public issue.
+Report vulnerabilities through GitHub private vulnerability reporting when available. Never place credentials, personal data, private URLs, or patient information in a public issue.
 
-## Configuration rules
-
-- Keep real credentials in local environment files or an external secret manager.
-- Commit only placeholder values in `.env.example` files.
-- Rotate any credential that was previously committed; deleting it from the current branch does not remove Git history.
-- Use synthetic or public sample data for tests, screenshots, and recordings.
-
-No response-time or production support commitment is implied.
-
+No security response-time commitment is implied.

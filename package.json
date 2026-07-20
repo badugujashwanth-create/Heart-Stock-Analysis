@@ -1,0 +1,11 @@
+{
+  "name": "heart-analysis-verification",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:demo": "playwright test scripts/full-workflow.spec.ts --workers=1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.57.0"
+  }
+}

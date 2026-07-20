@@ -40,7 +40,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
       final records = await widget.apiClient.fetchPredictions(limit: 20);
       widget.appState.setHistory(records);
     } on TimeoutException {
-      widget.appState.setHistoryError('History request timed out. Please retry.');
+      widget.appState.setHistoryError(
+        'History request timed out. Please retry.',
+      );
     } on ApiException catch (e) {
       widget.appState.setHistoryError(e.message);
     } catch (_) {
@@ -72,7 +74,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          'Prediction History',
+                          'Educational Score History',
                           style: Theme.of(context).textTheme.headlineSmall,
                         ),
                       ),
@@ -82,7 +84,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ? const SizedBox(
                                 width: 16,
                                 height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Icon(Icons.refresh),
                         label: Text(loading ? 'Loading...' : 'Refresh'),
@@ -105,7 +109,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         child: Text(
                           error,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onErrorContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onErrorContainer,
                           ),
                         ),
                       ),
@@ -120,15 +126,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     child: records.isEmpty && loading
                         ? const Center(child: CircularProgressIndicator())
                         : records.isEmpty
-                            ? const Center(child: Text('No predictions stored yet.'))
-                            : ListView.separated(
-                                itemCount: records.length,
-                                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                                itemBuilder: (context, index) {
-                                  final record = records[index];
-                                  return _HistoryTile(record: record);
-                                },
-                              ),
+                        ? const Center(
+                            child: Text('No educational profiles stored yet.'),
+                          )
+                        : ListView.separated(
+                            itemCount: records.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 8),
+                            itemBuilder: (context, index) {
+                              final record = records[index];
+                              return _HistoryTile(record: record);
+                            },
+                          ),
                   ),
                 ],
               ),
@@ -149,17 +158,19 @@ class _HistoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final pct = (record.riskProbability * 100).toStringAsFixed(1);
     final date = DateTime.tryParse(record.timestamp);
-    final timestamp = date == null ? record.timestamp : date.toLocal().toString();
+    final timestamp = date == null
+        ? record.timestamp
+        : date.toLocal().toString();
 
     return Card(
       child: ListTile(
-        title: Text('${record.riskLabel} risk ($pct%)'),
+        title: Text('${record.riskLabel} band ($pct / 100)'),
         subtitle: Text(timestamp),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => showDialog<void>(
           context: context,
           builder: (_) => AlertDialog(
-            title: const Text('Prediction Snapshot'),
+            title: const Text('Educational Profile Snapshot'),
             content: SizedBox(
               width: 560,
               child: SingleChildScrollView(
@@ -224,12 +235,12 @@ class _HistoryTrendChart extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Risk Trend (Last ${sorted.length})',
+              'Profile Score Trend (Last ${sorted.length})',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 6),
             Text(
-              'Risk probability over time (%)',
+              'Uncalibrated educational score over time (0-100)',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 12),
@@ -252,24 +263,35 @@ class _HistoryTrendChart extends StatelessWidget {
                   lineTouchData: LineTouchData(
                     touchTooltipData: LineTouchTooltipData(
                       getTooltipItems: (spots) {
-                        return spots.map((spot) {
-                          final idx = spot.x.round().clamp(0, sorted.length - 1);
-                          final row = sorted[idx];
-                          final time = DateTime.tryParse(row.timestamp)?.toLocal();
-                          final dateText = time == null
-                              ? 'Unknown'
-                              : '${time.month}/${time.day} ${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-                          return LineTooltipItem(
-                            '$dateText\n${spot.y.toStringAsFixed(1)}%',
-                            const TextStyle(color: Colors.white),
-                          );
-                        }).toList(growable: false);
+                        return spots
+                            .map((spot) {
+                              final idx = spot.x.round().clamp(
+                                0,
+                                sorted.length - 1,
+                              );
+                              final row = sorted[idx];
+                              final time = DateTime.tryParse(
+                                row.timestamp,
+                              )?.toLocal();
+                              final dateText = time == null
+                                  ? 'Unknown'
+                                  : '${time.month}/${time.day} ${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+                              return LineTooltipItem(
+                                '$dateText\n${spot.y.toStringAsFixed(1)}%',
+                                const TextStyle(color: Colors.white),
+                              );
+                            })
+                            .toList(growable: false);
                       },
                     ),
                   ),
                   titlesData: FlTitlesData(
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
@@ -291,7 +313,9 @@ class _HistoryTrendChart extends StatelessWidget {
                           if (idx < 0 || idx >= sorted.length) {
                             return const SizedBox.shrink();
                           }
-                          final time = DateTime.tryParse(sorted[idx].timestamp)?.toLocal();
+                          final time = DateTime.tryParse(
+                            sorted[idx].timestamp,
+                          )?.toLocal();
                           if (time == null) {
                             return const SizedBox.shrink();
                           }

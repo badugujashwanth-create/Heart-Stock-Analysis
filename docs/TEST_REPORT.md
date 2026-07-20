@@ -1,19 +1,22 @@
 # Test report
 
-Audited on 2026-07-17 using the checked-out `portfolio-polish` branch on Windows.
+Audited on 20 July 2026 from `product-completion-2026` on Windows.
 
-| Command | Result | Evidence / notes |
-|---|---|---|
-| `backend: python -m ruff check .` | Pass | All checks passed after 7 safe autofixes |
-| `backend: python -m pytest -q` | Pass | 18 tests passed |
-| `root: flutter test` | Pass | 9 tests passed |
-| `frontend: flutter analyze / flutter test` | Pass | No issues; 1 test passed |
-| `frontend: GitHub Actions stable Flutter analyze` | Pass with informational warnings | Flutter 3.44 reports two `DropdownButtonFormField.value` deprecations; CI keeps informational diagnostics visible without treating them as errors |
-| `root: flutter analyze` | Fail | Root analysis traverses the nested `frontend` package and reports 32 cross-package errors; run checks per package |
-| `frontend: flutter build web --release` | Pass | Release web bundle generated for the canonical documented client |
+| Check | Result |
+| --- | --- |
+| Backend Ruff | Pass |
+| Backend pytest | 19 tests pass |
+| Canonical Flutter analyze | Pass, no issues |
+| Canonical Flutter widget tests | 2 pass |
+| Flutter release web build | Pass |
+| Playwright synthetic workflow | 2 pass: full five-tab flow and 390px overflow |
+| Python dependency audit | No known vulnerabilities after Flask-CORS upgrade |
+| Node dependency audit | 0 vulnerabilities |
 
-## Overall status
+The browser workflow uses Playwright’s bundled Chromium, loads the built-in synthetic profile, generates the scorecard, changes the exercise slider, runs the what-if comparison, opens history, and checks the assistant boundary. It performs no provider requests.
 
-Verified per package. Running `flutter analyze` from the outer package still traverses the nested package and produces misleading cross-package errors, so CI and development checks target `frontend` directly.
+Local release verification includes a clean current-tree secret scan, final Markdown-link scan, and video probe/checksum. GitHub Actions must be green on the release commit before publication.
 
-Warnings and missing checks remain limitations, even when another check passes.
+The staged release diff is Gitleaks-clean. Full-history scanning intentionally remains non-clean because the initial commit contains two redacted Google API keys; console restriction/rotation is a human checkpoint and history was not rewritten.
+
+The accepted walkthrough is 257.488 seconds at 1280×720 with VP9 video, Opus narration, captions, thumbnail, and ten inspected frames. SHA-256: `27f2efc1dfb0abc5da6955cb0fbf1ecfc996720db740df5201beae83398d6dfe`.

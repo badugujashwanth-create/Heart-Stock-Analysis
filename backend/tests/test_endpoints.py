@@ -37,6 +37,10 @@ def test_model_card(client):
     assert data["model_name"]
     assert isinstance(data["features"], list)
     assert data["disclaimer"]
+    assert data["calibrated"] is False
+    assert data["validation_status"] == "not clinically validated"
+    assert "not a disease probability" in data["output_meaning"]
+    assert "synthetic data only" in data["intended_use"]
 
 
 def test_predict_and_history(client):
@@ -45,7 +49,14 @@ def test_predict_and_history(client):
     output = first.get_json()
 
     assert 0 <= output["risk_probability"] <= 1
-    assert output["risk_label"] in {"Low", "Moderate", "Elevated", "High", "Critical"}
+    assert output["risk_label"] in {"Low", "Moderate", "Elevated", "High", "Very high"}
+    assert output["score_metadata"] == {
+        "type": "uncalibrated_educational_heuristic",
+        "calibrated": False,
+        "medical_probability": False,
+    }
+    assert "not a medical risk estimate" in output["disclaimer"]
+    assert "Educational profile score" in output["interpretation"]
     assert len(output["top_factors"]) <= 5
     assert output["assistant_context"]["current_prediction_summary"]["risk_label"] == output["risk_label"]
     assert output["ai_plan_preview"]["summary"]
@@ -72,6 +83,22 @@ def test_assistant_context_includes_last_prediction(client):
     assert context["latest_prediction_summary"] is not None
 
 
+def test_prediction_persistence_is_opt_in(client):
+    client.application.config["PERSIST_PREDICTIONS"] = False
+
+    response = client.post("/v1/predict", json=valid_payload())
+    assert response.status_code == 200
+    assert response.get_json()["persistence_enabled"] is False
+
+    history = client.get("/v1/predictions?limit=20")
+    assert history.status_code == 200
+    assert history.get_json() == {
+        "count": 0,
+        "records": [],
+        "persistence_enabled": False,
+    }
+
+
 def test_simulate_returns_delta_and_changes(client):
     payload = valid_payload()
     response = client.post(
@@ -92,7 +119,8 @@ def test_simulate_returns_delta_and_changes(client):
     assert 0 <= body["baseline"]["risk_probability"] <= 1
     assert 0 <= body["simulated"]["risk_probability"] <= 1
     assert isinstance(body["delta"]["risk_probability"], float)
-    assert body["delta"]["direction"] in {"higher", "lower", "unchanged"}
+    assert body["delta"]["direction"] == "lower"
+    assert body["score_metadata"]["medical_probability"] is False
 
     changed_fields = {item["field"] for item in body["changed_factors"]}
     assert {"bmi", "sleep_hours", "exercise_mins", "smoking_status"} <= changed_fields

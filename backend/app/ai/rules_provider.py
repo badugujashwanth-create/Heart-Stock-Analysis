@@ -38,8 +38,9 @@ class RulesAIProvider(AIProvider):
         red_flags = self._build_red_flags(prediction)
 
         summary = (
-            f"Risk level is {prediction.risk_label} ({prediction.risk_probability * 100:.1f}%). "
-            "This plan prioritizes practical lifestyle actions based on your main risk factors."
+            f"Educational profile band is {prediction.risk_label} "
+            f"({prediction.risk_probability * 100:.1f}/100). "
+            "This demonstration organizes general lifestyle ideas around the configured factors."
         )
 
         return AIPlanResponse(
@@ -63,8 +64,8 @@ class RulesAIProvider(AIProvider):
         matched_topic = False
         if prediction is not None:
             lines.append(
-                f"Current risk context: {prediction.risk_label} "
-                f"({prediction.risk_probability * 100:.1f}%)."
+                f"Current educational profile: {prediction.risk_label} "
+                f"({prediction.risk_probability * 100:.1f}/100)."
             )
 
         if "diet" in normalized or "food" in normalized:
@@ -125,14 +126,14 @@ class RulesAIProvider(AIProvider):
         priorities: list[PriorityItem] = []
         seen: set[str] = set()
 
-        if prediction.risk_label in {"High", "Critical"}:
+        if prediction.risk_label in {"High", "Very high"}:
             priorities.append(
                 PriorityItem(
-                    title="Clinical follow-up soon",
-                    why="Higher risk profiles benefit from clinician-guided prevention planning.",
+                    title="Discuss the inputs with a clinician",
+                    why="A high educational band must not be interpreted as personal medical risk.",
                     how=[
-                        "Book a follow-up appointment in the near term.",
-                        "Share your recent BP, glucose, sleep, and activity logs.",
+                        "If these were real inputs, ask a clinician how to interpret them.",
+                        "Do not make treatment decisions from this demonstration.",
                     ],
                 )
             )
@@ -159,7 +160,7 @@ class RulesAIProvider(AIProvider):
             ),
             PriorityItem(
                 title="Build consistent activity",
-                why="Regular movement helps reduce long-term cardiovascular risk.",
+                why="This demo assigns more activity a lower heuristic contribution.",
                 how=[
                     "Target at least 150 minutes of moderate activity weekly.",
                     "Break activity into short sessions if time is limited.",
@@ -199,7 +200,7 @@ class RulesAIProvider(AIProvider):
         if feature in {"systolic_bp", "diastolic_bp", "hypertension"}:
             return PriorityItem(
                 title="Stabilize blood pressure habits",
-                why="Blood pressure trends strongly affect stroke risk.",
+                why="Blood pressure is a prominent input in this configured educational heuristic.",
                 how=[
                     "Reduce sodium from packaged and restaurant foods.",
                     "Track BP at consistent times and review trends weekly.",
@@ -208,7 +209,7 @@ class RulesAIProvider(AIProvider):
         if feature in {"glucose"}:
             return PriorityItem(
                 title="Improve glucose-friendly eating",
-                why="Better glucose control lowers vascular stress.",
+                why="Glucose is one configured input in this educational heuristic.",
                 how=[
                     "Pair carbs with protein/fiber at meals.",
                     "Limit sweetened drinks and late-night sugary snacks.",
@@ -217,7 +218,7 @@ class RulesAIProvider(AIProvider):
         if feature in {"smoking"}:
             return PriorityItem(
                 title="Move toward smoke-free routine",
-                why="Smoking increases vascular inflammation and clotting risk.",
+                why="Smoking status has a positive weight in this educational heuristic.",
                 how=[
                     "Set a quit or reduction date this week.",
                     "Use a craving plan: delay, hydrate, and short walk.",
@@ -226,7 +227,7 @@ class RulesAIProvider(AIProvider):
         if feature in {"bmi"}:
             return PriorityItem(
                 title="Support healthy weight trajectory",
-                why="Weight reduction can improve BP, glucose, and sleep quality.",
+                why="BMI is one configured input in this educational heuristic.",
                 how=[
                     "Create a modest calorie deficit with whole foods.",
                     "Combine food quality goals with regular movement.",
@@ -235,7 +236,7 @@ class RulesAIProvider(AIProvider):
         if feature in {"exercise"}:
             return PriorityItem(
                 title="Increase weekly physical activity",
-                why="Physical activity improves vascular and metabolic health.",
+                why="Activity has a negative weight in this educational heuristic.",
                 how=[
                     "Start with manageable sessions and progress gradually.",
                     "Aim for activity on at least 5 days per week.",
@@ -244,7 +245,7 @@ class RulesAIProvider(AIProvider):
         if feature in {"sleep"}:
             return PriorityItem(
                 title="Improve sleep consistency",
-                why="Short or poor sleep can raise cardiometabolic risk.",
+                why="Sleep duration changes the configured educational score.",
                 how=[
                     "Target 7-8 hours with fixed sleep/wake timing.",
                     "Avoid caffeine late in the day and reduce screen time at night.",
@@ -253,7 +254,7 @@ class RulesAIProvider(AIProvider):
         if feature in {"salt"}:
             return PriorityItem(
                 title="Lower sodium exposure",
-                why="High sodium intake can worsen blood pressure control.",
+                why="Excess salt has a positive weight in this educational heuristic.",
                 how=[
                     "Cook more meals at home with herbs instead of salt-heavy sauces.",
                     "Read labels and choose lower-sodium options.",
@@ -492,14 +493,14 @@ class RulesAIProvider(AIProvider):
                 )
             )
 
-        if prediction.risk_label in {"High", "Critical"}:
+        if prediction.risk_label in {"High", "Very high"}:
             habits.append(
                 HabitItem(
-                    habit="Weekly clinical check-in",
-                    target="Review progress with a clinician",
+                    habit="Interpretation checkpoint",
+                    target="Do not treat the score as medical advice",
                     tips=[
-                        "Carry your BP/glucose/activity logs to review patterns.",
-                        "Agree on practical next-step goals.",
+                        "If inputs are real, discuss them with a qualified clinician.",
+                        "Use the demo only to inspect configured score behavior.",
                     ],
                 )
             )
@@ -508,13 +509,13 @@ class RulesAIProvider(AIProvider):
 
     def _build_red_flags(self, prediction: PredictionOutputInput) -> list[str]:
         flags = [
-            "If risk indicators worsen over multiple checks, consult a clinician.",
-            "If new concerning symptoms appear, seek medical help promptly.",
+            "Do not use score changes to assess symptoms or medical urgency.",
+            "For real symptoms or personal medical questions, seek qualified care.",
         ]
-        if prediction.risk_label in {"High", "Critical"}:
+        if prediction.risk_label in {"High", "Very high"}:
             flags.insert(
                 0,
-                "Higher-risk profile: arrange clinician follow-up soon for personalized prevention planning.",
+                "High educational band: do not interpret this as a clinical classification.",
             )
         return flags
 

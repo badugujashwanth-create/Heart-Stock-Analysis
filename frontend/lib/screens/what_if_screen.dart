@@ -65,7 +65,9 @@ class _WhatIfScreenState extends State<WhatIfScreen> {
 
     if (overrides.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Adjust at least one field to run simulation.')),
+        const SnackBar(
+          content: Text('Adjust at least one field to run simulation.'),
+        ),
       );
       return;
     }
@@ -82,13 +84,15 @@ class _WhatIfScreenState extends State<WhatIfScreen> {
     } on TimeoutException {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Simulation timed out. Please try again.')),
+        const SnackBar(
+          content: Text('Simulation timed out. Please try again.'),
+        ),
       );
     } on ApiException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -115,7 +119,7 @@ class _WhatIfScreenState extends State<WhatIfScreen> {
             child: Padding(
               padding: EdgeInsets.all(24),
               child: Text(
-                'Generate a prediction first. The What-If simulator uses your latest input as baseline.',
+                'Generate an educational profile first. The What-If simulator uses that synthetic input as its baseline.',
                 textAlign: TextAlign.center,
               ),
             ),
@@ -123,8 +127,10 @@ class _WhatIfScreenState extends State<WhatIfScreen> {
         }
 
         final baselineProbability =
-            _result?.baselineRiskProbability ?? baselinePrediction.riskProbability;
-        final baselineLabel = _result?.baselineRiskLabel ?? baselinePrediction.riskLabel;
+            _result?.baselineRiskProbability ??
+            baselinePrediction.riskProbability;
+        final baselineLabel =
+            _result?.baselineRiskLabel ?? baselinePrediction.riskLabel;
         final simulatedProbability = _result?.simulatedRiskProbability;
         final simulatedLabel = _result?.simulatedRiskLabel;
 
@@ -135,10 +141,13 @@ class _WhatIfScreenState extends State<WhatIfScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Text('What-If Simulator', style: Theme.of(context).textTheme.headlineSmall),
+                Text(
+                  'What-If Simulator',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
                 const SizedBox(height: 10),
                 _riskCard(
-                  title: 'Baseline Risk',
+                  title: 'Baseline Score',
                   probability: baselineProbability,
                   label: baselineLabel,
                 ),
@@ -149,7 +158,10 @@ class _WhatIfScreenState extends State<WhatIfScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Adjust Factors', style: Theme.of(context).textTheme.titleMedium),
+                        Text(
+                          'Adjust Factors',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                         const SizedBox(height: 12),
                         _sliderRow(
                           context,
@@ -169,7 +181,8 @@ class _WhatIfScreenState extends State<WhatIfScreen> {
                           max: 12,
                           divisions: 24,
                           display: _sleepHours.toStringAsFixed(1),
-                          onChanged: (value) => setState(() => _sleepHours = value),
+                          onChanged: (value) =>
+                              setState(() => _sleepHours = value),
                         ),
                         _sliderRow(
                           context,
@@ -179,7 +192,8 @@ class _WhatIfScreenState extends State<WhatIfScreen> {
                           max: 180,
                           divisions: 36,
                           display: _exerciseMins.round().toString(),
-                          onChanged: (value) => setState(() => _exerciseMins = value),
+                          onChanged: (value) =>
+                              setState(() => _exerciseMins = value),
                         ),
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
@@ -208,10 +222,14 @@ class _WhatIfScreenState extends State<WhatIfScreen> {
                               ? const SizedBox(
                                   width: 16,
                                   height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : const Icon(Icons.auto_graph),
-                          label: Text(_loading ? 'Simulating...' : 'Run What-If'),
+                          label: Text(
+                            _loading ? 'Simulating...' : 'Run What-If',
+                          ),
                         ),
                       ],
                     ),
@@ -220,7 +238,7 @@ class _WhatIfScreenState extends State<WhatIfScreen> {
                 if (simulatedProbability != null && simulatedLabel != null) ...[
                   const SizedBox(height: 10),
                   _riskCard(
-                    title: 'Simulated Risk',
+                    title: 'Simulated Score',
                     probability: simulatedProbability,
                     label: simulatedLabel,
                   ),
@@ -254,7 +272,9 @@ class _WhatIfScreenState extends State<WhatIfScreen> {
       children: [
         Row(
           children: [
-            Expanded(child: Text(label, style: Theme.of(context).textTheme.titleSmall)),
+            Expanded(
+              child: Text(label, style: Theme.of(context).textTheme.titleSmall),
+            ),
             Text(display),
           ],
         ),
@@ -288,8 +308,11 @@ class _WhatIfScreenState extends State<WhatIfScreen> {
                   Text(title),
                   const SizedBox(height: 6),
                   Text(
-                    '$percent%',
-                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+                    '$percent / 100',
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ],
               ),
@@ -323,13 +346,13 @@ class _WhatIfScreenState extends State<WhatIfScreen> {
     final bgColor = neutral
         ? Theme.of(context).colorScheme.surfaceContainerHigh
         : improved
-            ? const Color(0xFFE8F6EA)
-            : const Color(0xFFFDEBEC);
+        ? const Color(0xFFE8F6EA)
+        : const Color(0xFFFDEBEC);
     final fgColor = neutral
         ? Theme.of(context).colorScheme.onSurface
         : improved
-            ? const Color(0xFF1B7F3C)
-            : const Color(0xFFB3261E);
+        ? const Color(0xFF1B7F3C)
+        : const Color(0xFFB3261E);
 
     return Card(
       color: bgColor,
@@ -339,7 +362,7 @@ class _WhatIfScreenState extends State<WhatIfScreen> {
           children: [
             Expanded(
               child: Text(
-                'Risk delta: ${delta > 0 ? '+' : ''}$deltaPct%',
+                'Score delta: ${delta > 0 ? '+' : ''}$deltaPct points',
                 style: TextStyle(
                   color: fgColor,
                   fontSize: 18,
@@ -365,7 +388,10 @@ class _WhatIfScreenState extends State<WhatIfScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Changed Factors', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              'Changed Factors',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 10),
             if (changes.isEmpty)
               const Text('No fields changed.')

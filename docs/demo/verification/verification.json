@@ -1,0 +1,27 @@
+{
+    "generated_at_utc":  "2026-07-20T17:42:01.5468383Z",
+    "duration_seconds":  257.488,
+    "width":  1280,
+    "height":  720,
+    "video_codec":  "vp9",
+    "audio_codec":  "opus",
+    "browser":  "Playwright bundled Chromium",
+    "data_boundary":  "Deterministic synthetic profile; rules provider; local opt-in persistence",
+    "workflow":  "Synthetic input -\u003e scorecard -\u003e what-if -\u003e history -\u003e assistant -\u003e close",
+    "captions":  "demo-captions.vtt",
+    "sha256":  "27f2efc1dfb0abc5da6955cb0fbf1ecfc996720db740df5201beae83398d6dfe",
+    "bytes":  6773742,
+    "verification_frames":  10,
+    "frame_timestamps":  [
+                             "00:00:10",
+                             "00:00:38",
+                             "00:01:02",
+                             "00:01:28",
+                             "00:01:52",
+                             "00:02:15",
+                             "00:02:40",
+                             "00:03:02",
+                             "00:03:28",
+                             "00:03:52"
+                         ]
+}

@@ -1,29 +1,17 @@
 # Development guide
 
-## Purpose
+## Canonical packages
 
-Flutter client and Flask API for educational heart-risk estimation, history, explanations, and local or MySQL persistence.
-
-## Prerequisites
-
-Flutter/Dart, Flask, Pydantic, SQLAlchemy, Alembic, SQLite/MySQL.
-
-## Install
+Run backend commands from `backend/` and Flutter commands from `frontend/`. Do not run the historical root package for release verification.
 
 ```powershell
-flutter pub get; cd backend; python -m venv .venv; .\.venv\Scripts\python -m pip install -r requirements-dev.txt
+cd backend
+python -m venv .venv
+.\.venv\Scripts\python -m pip install -r requirements-dev.txt
+cd ..\frontend
+flutter pub get
 ```
 
-## Run
+For the safe local product flow, run `scripts/run-demo.ps1` from the repository root. It uses the rules provider, a localhost API, and an isolated synthetic-history database.
 
-```powershell
-Run the Flask backend, then `flutter run` from the selected Flutter client directory
-```
-
-## Verify
-
-- Tests: `Backend: pytest; Flutter: flutter test`
-- Build: `Flutter platform build (not executed in this audit)`
-
-See [TEST_REPORT.md](TEST_REPORT.md) for the latest audited results. Copy example environment files instead of committing real values. Generated dependencies, caches, logs, databases, and build output must remain untracked.
-
+Verification commands are recorded in [TEST_REPORT.md](TEST_REPORT.md). Use `PERSIST_PREDICTIONS=true` only for an isolated synthetic-data demo. Never commit `.env`, databases, generated dependencies, test output, or recordings containing personal data.

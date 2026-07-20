@@ -6,8 +6,9 @@ from typing import Any
 from .schemas import PredictionInput
 
 DISCLAIMER = (
-    "This tool provides an AI-assisted risk estimate for educational support only and "
-    "does not replace clinical diagnosis or emergency medical care."
+    "This unvalidated educational heuristic is not a medical risk estimate, diagnosis, "
+    "or treatment recommendation. Use synthetic data only and consult a qualified "
+    "clinician for personal health questions."
 )
 
 FEATURE_DESCRIPTIONS = {
@@ -44,19 +45,29 @@ FEATURE_WEIGHTS = {
 BIAS = -2.10
 
 MODEL_CARD = {
-    "model_name": "StrokeRisk Logistic Heuristic",
-    "model_version": "0.2.0",
+    "model_name": "Stroke Profile Educational Heuristic",
+    "model_version": "1.0.0",
     "framework": "hand-coded logistic scoring",
+    "calibrated": False,
+    "validation_status": "not clinically validated",
+    "output_meaning": (
+        "A deterministic 0-100 educational profile score derived from configured "
+        "weights. It is not a disease probability or individual prognosis."
+    ),
     "features": [
         {"name": key, "description": value}
         for key, value in FEATURE_DESCRIPTIONS.items()
     ],
     "limitations": [
-        "Not trained on your local hospital cohort.",
+        "Not trained or clinically validated on any patient cohort.",
+        "The numeric output is not a calibrated probability.",
         "Does not include imaging, ECG, labs beyond provided inputs.",
         "Cannot diagnose acute stroke; emergency care is required for symptoms.",
     ],
-    "intended_use": "Preventive risk awareness and triage support.",
+    "intended_use": (
+        "Demonstrating explainable scoring, API validation, and what-if interactions "
+        "with synthetic data only."
+    ),
     "disclaimer": DISCLAIMER,
 }
 
@@ -87,8 +98,9 @@ def _smoking_numeric(status: str) -> float:
 
 
 def _exercise_score(minutes: int) -> float:
-    # Lower risk when exercise increases; normalized around 30 mins/day.
-    return _clamp((30 - minutes) / 60.0, -1.0, 1.5)
+    # Higher activity produces a larger feature value; the negative weight then
+    # lowers the educational score. Normalize around 30 minutes/day.
+    return _clamp((minutes - 30) / 60.0, -1.0, 1.5)
 
 
 def _sleep_score(hours: int) -> float:
@@ -129,7 +141,7 @@ def _risk_label(probability: float) -> str:
         return "Elevated"
     if probability < 0.80:
         return "High"
-    return "Critical"
+    return "Very high"
 
 
 def _recommendations(data: PredictionInput, label: str, top_factors: list[dict[str, Any]]) -> list[str]:
@@ -149,8 +161,8 @@ def _recommendations(data: PredictionInput, label: str, top_factors: list[dict[s
     if data.sleep_hours < 6:
         recs.append("Aim for at least 7 hours of sleep to improve cardiometabolic recovery.")
 
-    if label in {"High", "Critical"}:
-        recs.append("Book a clinical review soon for targeted prevention planning.")
+    if label in {"High", "Very high"}:
+        recs.append("Consider discussing the highlighted inputs with a qualified clinician.")
 
     if not recs:
         recs.append("Maintain current healthy habits and continue routine preventive checkups.")
@@ -160,23 +172,24 @@ def _recommendations(data: PredictionInput, label: str, top_factors: list[dict[s
 
 def _interpretation(label: str, probability: float) -> str:
     pct = probability * 100
-    if label == "Critical":
-        return f"Estimated risk is very high at {pct:.1f}%. Multiple major factors are elevated and urgent clinical follow-up is advised."
+    prefix = f"Educational profile score: {pct:.1f}/100 ({label} band)."
+    if label == "Very high":
+        return f"{prefix} Several configured factors contribute strongly to this unvalidated heuristic score."
     if label == "High":
-        return f"Estimated risk is high at {pct:.1f}%. Several meaningful risk factors are present and should be actively managed."
+        return f"{prefix} Multiple configured factors contribute to the result."
     if label == "Elevated":
-        return f"Estimated risk is elevated at {pct:.1f}%. Targeted lifestyle and medical follow-up can reduce future risk."
+        return f"{prefix} Some configured factors contribute more strongly than others."
     if label == "Moderate":
-        return f"Estimated risk is moderate at {pct:.1f}%. Prevention-focused improvements can move this profile lower."
-    return f"Estimated risk is low at {pct:.1f}%. Continue healthy habits and periodic checkups."
+        return f"{prefix} The configured factors produce a mid-range result."
+    return f"{prefix} The configured factors produce a lower-range result."
 
 
 def _ai_summary(label: str, probability: float, top_factors: list[dict[str, Any]]) -> str:
     factor_text = ", ".join(item["feature"] for item in top_factors[:3]) or "overall profile"
     return (
-        f"The model estimates a {probability * 100:.1f}% stroke risk ({label}). "
+        f"The unvalidated heuristic produces a {probability * 100:.1f}/100 profile score ({label}). "
         f"The most influential drivers were {factor_text}. "
-        "Use this as a preventive guide and confirm decisions with a healthcare professional."
+        "Use this only to explore how the configured inputs affect the demonstration."
     )
 
 
@@ -211,6 +224,11 @@ def run_model(data: PredictionInput) -> dict[str, Any]:
     return {
         "risk_probability": round(probability, 4),
         "risk_label": label,
+        "score_metadata": {
+            "type": "uncalibrated_educational_heuristic",
+            "calibrated": False,
+            "medical_probability": False,
+        },
         "top_factors": top_factors,
         "recommendations": recommendations,
         "interpretation": interpretation,
