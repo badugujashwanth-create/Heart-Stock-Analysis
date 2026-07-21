@@ -4,7 +4,9 @@ An educational Flutter and Flask product for exploring how a transparent, hand-c
 
 > **Portfolio prototype — not medical software.** The 0–100 result is uncalibrated, was not trained or clinically validated on a patient cohort, and is not a disease probability, diagnosis, prognosis, or treatment recommendation. Use synthetic data only.
 
-[![Watch the verified HeartAnalysis walkthrough](docs/demo/demo-thumbnail.png)](docs/demo/demo.webm)
+[![Watch the verified HeartAnalysis walkthrough](docs/demo/demo-thumbnail.png)](https://jashwanth-portfolio-ten.vercel.app/work/heart-analysis/)
+
+[Open MP4](https://jashwanth-portfolio-ten.vercel.app/media/heart-analysis/demo.mp4) · [Download WebM](https://jashwanth-portfolio-ten.vercel.app/media/heart-analysis/demo.webm) · [Captions](https://jashwanth-portfolio-ten.vercel.app/media/heart-analysis/demo-captions.vtt)
 
 ## The showcase workflow
 
